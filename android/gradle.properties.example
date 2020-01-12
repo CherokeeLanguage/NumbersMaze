@@ -1,0 +1,4 @@
+store_file=/path/to/keystore/file
+store_password=master-password
+store_keyalias=key-alias
+store_keypassword=key-password
