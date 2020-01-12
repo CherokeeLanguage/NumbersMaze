@@ -19,7 +19,8 @@ buildscript {
 
 allprojects {
 
-    version = '1.0'
+    version = '1.05'
+    
     ext {
         appName = "Numbers Maze"
         gdxVersion = '1.9.10'

@@ -258,12 +258,16 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
+		Controller c;
 		Array<Controller> controllers = Controllers.getControllers();
-		if (controllers.isEmpty()) {
-			return false;
+		if (!controllers.isEmpty()) {
+			c = controllers.first();
+		} else {
+			c= null;
 		}
-		Controller c = controllers.first();
 		switch(keycode) {
+		case Keys.CENTER:
+			return buttonDown(c, Xbox.BUTTON_A);
 		case Keys.Z:
 			return buttonDown(c, Xbox.BUTTON_X);
 		case Keys.X:
@@ -284,12 +288,16 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 
 	@Override
 	public boolean keyUp(int keycode) {
+		Controller c;
 		Array<Controller> controllers = Controllers.getControllers();
-		if (controllers.isEmpty()) {
-			return false;
+		if (!controllers.isEmpty()) {
+			c = controllers.first();
+		} else {
+			c= null;
 		}
-		Controller c = controllers.first();
 		switch(keycode) {
+		case Keys.CENTER:
+			return buttonUp(c, Xbox.BUTTON_A);
 		case Keys.Z:
 			return buttonUp(c, Xbox.BUTTON_X);
 		case Keys.X:

@@ -68,6 +68,7 @@ import com.cherokeelessons.maze.object.DataBundle;
 import com.cherokeelessons.maze.object.GenerateNumber;
 import com.cherokeelessons.maze.object.Maze;
 import com.cherokeelessons.maze.object.MazeCell;
+import com.cherokeelessons.maze.object.Xbox;
 
 public class SinglePlayerMazeScreen extends ScreenBase {
 
@@ -349,6 +350,16 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				e.screen = ScreenList.MainMenu;
 				NumbersMaze.post(e);
 				return true;
+			}
+			if (keycode==Keys.CENTER) {
+				Controller c;
+				Array<Controller> controllers = Controllers.getControllers();
+				if (!controllers.isEmpty()) {
+					c = controllers.first();
+				} else {
+					c= null;
+				}
+				return buttonUp(c, Xbox.BUTTON_A);
 			}
 			return super.keyUp(keycode);
 		}

@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.cherokeelessons.maze.Effect.MusicPauseEvent;
 import com.cherokeelessons.maze.Effect.MusicPlayEvent;
@@ -263,6 +264,16 @@ public class MainMenu extends ScreenBase {
 				setButton.run();
 				return true;
 			}
+			if (keycode==Keys.CENTER) {
+				Controller c;
+				Array<Controller> controllers = Controllers.getControllers();
+				if (!controllers.isEmpty()) {
+					c = controllers.first();
+				} else {
+					c= null;
+				}
+				return buttonDown(c, Xbox.BUTTON_A);
+			}
 			return super.keyDown(keycode);
 		}
 		@Override
@@ -272,6 +283,16 @@ public class MainMenu extends ScreenBase {
 					doButton.run();
 				}
 				return true;
+			}
+			if (keycode==Keys.CENTER) {
+				Controller c;
+				Array<Controller> controllers = Controllers.getControllers();
+				if (!controllers.isEmpty()) {
+					c = controllers.first();
+				} else {
+					c= null;
+				}
+				return buttonUp(c, Xbox.BUTTON_A);
 			}
 			return super.keyUp(keycode);
 		}

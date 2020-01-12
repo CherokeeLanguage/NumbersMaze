@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.ControllerListener;
@@ -86,8 +88,8 @@ public class NumbersMaze extends Game {
 		S.getArg().init(packTextures(textureSize));
 		S.getPar().init(textureSize);
 		
-		Gdx.input.setCatchBackKey(true);
-		Gdx.input.setCatchMenuKey(true);
+		Gdx.input.setCatchKey(Input.Keys.BACK, true);
+		Gdx.input.setCatchKey(Input.Keys.MENU, true);
 		
 		OS.check();
 		
@@ -362,6 +364,11 @@ public class NumbersMaze extends Game {
 		public static boolean isMac=false;
 		public static boolean isUnix=false;
 		public static boolean isSolaris=false;
+		
+		public static boolean isOnAndroidTV() {
+		    return Gdx.app.getType().equals(Application.ApplicationType.Android) &&
+		            !Gdx.input.isPeripheralAvailable(Input.Peripheral.MultitouchScreen);
+		}
 	}
 	
 
