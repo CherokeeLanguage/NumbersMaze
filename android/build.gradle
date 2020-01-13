@@ -18,7 +18,7 @@ android {
     }
     defaultConfig {
         applicationId "com.cherokeelessons.maze"
-        archivesBaseName = "${appName}-${version}-${java.time.LocalDate.now().toString()}"
+        archivesBaseName = "NumbersMaze-${version}-${java.time.LocalDate.now().toString()}"
         minSdkVersion 14
         targetSdkVersion 29
         versionCode 5
@@ -43,6 +43,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+     eclipse {
+    	project {
+        	name = "CherokeeNumbersMaze-android"
+    	}
+    	classpath {
+    		plusConfigurations.add configurations.natives
+    	}
+	}
 }
 
 

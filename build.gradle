@@ -19,6 +19,8 @@ buildscript {
 
 allprojects {
 
+	apply plugin: "eclipse-wtp"
+
     version = '1.05'
     
     ext {
@@ -42,7 +44,7 @@ allprojects {
 
 project(":desktop") {
     apply plugin: "java-library"
-    apply plugin: "eclipse"
+    //apply plugin: "eclipse"
 
     dependencies {
         implementation project(":core")
@@ -64,7 +66,6 @@ project(":desktop") {
 
 project(":android") {
     apply plugin: "android"
-    apply plugin: "eclipse"
 
     configurations { natives }
 
@@ -92,18 +93,12 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     }
-    eclipse {
-    	project {
-        	name = "CherokeeNumbersMaze-android"
-    	}
-	}
-    
 }
 
 project(":ios") {
     apply plugin: "java-library"
     apply plugin: "robovm"
-	apply plugin: "eclipse"
+	//apply plugin: "eclipse"
 
     dependencies {
         implementation project(":core")
@@ -124,7 +119,7 @@ project(":ios") {
 
 project(":core") {
     apply plugin: "java-library"
-	apply plugin: "eclipse"
+	//apply plugin: "eclipse"
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
