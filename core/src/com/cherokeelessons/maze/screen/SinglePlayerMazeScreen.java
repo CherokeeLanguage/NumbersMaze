@@ -1232,14 +1232,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					// tile.setColor(Color.BLUE);
 					// imgList.add(tile);
 
-					float tileSize = tile.getWidth();
-					// box2d is center of body based, set origin of object to
-					// match
 					tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
 					tile.setScale(1);
 					tile.setOffsetX(-tile.getWidth() / 2);
 					tile.setOffsetY(-tile.getHeight() / 2);
 					tile.setWorldScale(WORLD_TO_BOX);
+					//tile.setScale(.9f);
+					tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
+					tile.layout();
 
 					BodyDef bodyDef = new BodyDef();
 					bodyDef.type = BodyType.DynamicBody;

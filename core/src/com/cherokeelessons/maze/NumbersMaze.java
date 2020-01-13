@@ -28,7 +28,6 @@ import com.cherokeelessons.maze.entity.Boom;
 import com.cherokeelessons.maze.entity.DeathOrb;
 import com.cherokeelessons.maze.entity.PlayerInput;
 import com.cherokeelessons.maze.object.DataBundle;
-import com.cherokeelessons.maze.screen.ExitScreen;
 import com.cherokeelessons.maze.screen.LoadingScreen;
 import com.cherokeelessons.maze.screen.MainMenu;
 import com.cherokeelessons.maze.screen.OnePlayerScreen;
@@ -204,7 +203,7 @@ public class NumbersMaze extends Game {
 	public OnePlayerScreen onePlayer;
 	
 	public static enum ScreenList {
-		Exit, MainMenu, SinglePlayerMazeScreen, Loading, OnePlayer, UltimateScreen, Previous, Paused, SaveGame, LoadGame, UltimateOnePlayer;
+		MainMenu, SinglePlayerMazeScreen, Loading, OnePlayer, UltimateScreen, Previous, Paused, SaveGame, LoadGame, UltimateOnePlayer;
 	}
 	
 	Array<ScreenList> screenStack=new Array<>();
@@ -244,9 +243,6 @@ public class NumbersMaze extends Game {
 	public void switchToHandler(ScreenChangeEvent event) {
 		Gdx.app.log("switchToHandler", event.screen.name()+" "+event.data.toString());
 		switch (event.screen) {
-		case Exit:
-			setScreen(new ExitScreen());
-			break;
 		case Loading:
 			if (loadingScreen==null) {
 				loadingScreen=new LoadingScreen(this);

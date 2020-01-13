@@ -133,20 +133,6 @@ public class MainMenu extends ScreenBase {
 		});
 		menuItems.add(about);
 
-		TextButton exit = new TextButton("Exit", mainStyle);
-		exit.addListener(new ClickListener() {
-			int item=menuItems.size();
-			@Override
-			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Exit!");
-				menu_item = item;
-				setButton.run();
-				doButton.run();
-			}
-		});
-		menuItems.add(exit);
-		exitIndex=menuItems.size()-1;
-		
 		LabelStyle titleStyle=new LabelStyle();
 		titleStyle.background=titleBar;
 		titleStyle.font=titleFont;
@@ -255,12 +241,10 @@ public class MainMenu extends ScreenBase {
 			}
 			return super.buttonUp(controller, buttonCode);
 		}
-		boolean was_on_exit=false;
 		@Override
 		public boolean keyDown(int keycode) {
 			if (keycode==Keys.BACK || keycode==Keys.ESCAPE) {
-				was_on_exit=menu_item==exitIndex;
-				menu_item=exitIndex;
+				menu_item=0;
 				setButton.run();
 				return true;
 			}
@@ -279,9 +263,6 @@ public class MainMenu extends ScreenBase {
 		@Override
 		public boolean keyUp(int keycode) {
 			if (keycode==Keys.BACK || keycode==Keys.ESCAPE) {
-				if (was_on_exit) {
-					doButton.run();
-				}
 				return true;
 			}
 			if (keycode==Keys.CENTER) {
@@ -329,10 +310,6 @@ public class MainMenu extends ScreenBase {
 			case 4:
 				//app.switchTo(ScreenList.AboutScreen);
 				break;
-			case 5:
-				e.screen=ScreenList.Exit;
-				NumbersMaze.post(e);
-				break;
 			default:
 				break;
 			}
@@ -374,8 +351,6 @@ public class MainMenu extends ScreenBase {
 	
 	NinePatchDrawable checked = null;
 	NinePatchDrawable titleBar = null;
-
-	private int exitIndex;
 
 	@Override
 	public void show() {
