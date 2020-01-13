@@ -266,6 +266,8 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 			c= null;
 		}
 		switch(keycode) {
+		case Keys.MEDIA_PLAY_PAUSE:
+			return buttonDown(c,Xbox.BUTTON_X);
 		case Keys.CENTER:
 			return buttonDown(c, Xbox.BUTTON_A);
 		case Keys.Z:
@@ -296,6 +298,8 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 			c= null;
 		}
 		switch(keycode) {
+		case Keys.MEDIA_PLAY_PAUSE:
+			return buttonUp(c,Xbox.BUTTON_X);
 		case Keys.CENTER:
 			return buttonUp(c, Xbox.BUTTON_A);
 		case Keys.Z:
