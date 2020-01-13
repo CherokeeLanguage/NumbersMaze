@@ -592,7 +592,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				NumbersMaze.post(e);
 				levelCompleteTick = System.currentTimeMillis();
 			}
-			tiles.addActor(thePortal);
+			gameStage.addActor(thePortal);
+			thePortal.setVisible(true);
 			thePortal.toFront();
 			if (thePortal.getCollidesWith().size > 0) {
 				Iterator<Entity> i = thePortal.getCollidesWith().iterator();
