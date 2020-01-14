@@ -2,6 +2,7 @@ package com.cherokeelessons.maze.screen;
 
 import java.util.ArrayList;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.controllers.Controller;
@@ -213,7 +214,7 @@ public class OnePlayerScreen extends ScreenBase {
 		btn_continue.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Continue");
+				Gdx.app.log(this.getClass().getSimpleName(),"Continue");
 				int item = menuItems.indexOf(btn_continue);
 				menu_item = item;
 				setButton.run();
@@ -224,7 +225,7 @@ public class OnePlayerScreen extends ScreenBase {
 		btn_save.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Save");
+				Gdx.app.log(this.getClass().getSimpleName(),"Save");
 				int item = menuItems.indexOf(btn_save);
 				menu_item = item;
 				setButton.run();
@@ -235,7 +236,7 @@ public class OnePlayerScreen extends ScreenBase {
 		btn_quit.addListener(new ClickListener() {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Quit");
+				Gdx.app.log(this.getClass().getSimpleName(),"Quit");
 				int item = menuItems.indexOf(btn_quit);
 				menu_item = item;
 				setButton.run();

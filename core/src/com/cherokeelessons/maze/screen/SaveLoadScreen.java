@@ -141,7 +141,7 @@ public class SaveLoadScreen extends ScreenBase {
 
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					System.out.println("New Game!");
+					Gdx.app.log(this.getClass().getSimpleName(),"New Game!");
 					menu_item = item;
 					setButton.run();
 					doButton.run();
@@ -232,7 +232,7 @@ public class SaveLoadScreen extends ScreenBase {
 		slots.putInteger(ix+"-score", gs.score);
 		slots.putBoolean(ix+"-ultimate", gs.ultimate);
 		slots.flush();
-		System.out.println("Saved Game: "+gs.toString());
+		Gdx.app.log(this.getClass().getSimpleName(),"Saved Game: "+gs.toString());
 		return gs;
 	}
 	

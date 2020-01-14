@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.IntArray;
 
 public class GraduatedIntervalQueue {
@@ -36,12 +37,12 @@ public class GraduatedIntervalQueue {
 		if (!debug) {
 			return;
 		}
-		System.out.println("===================================");
+		Gdx.app.log(this.getClass().getSimpleName(),"===================================");
 		for (ix = 0, len = listToDump.size(); ix < len; ix++) {
-			System.out.println(ix + ": " + listToDump.get(ix));
+			Gdx.app.log(this.getClass().getSimpleName(),ix + ": " + listToDump.get(ix));
 		}
-		System.out.println("===================================");
-		System.out.println();
+		Gdx.app.log(this.getClass().getSimpleName(),"===================================");
+		Gdx.app.log(this.getClass().getSimpleName(),"");
 	}
 
 	private ArrayList<Integer> startingEntries;
@@ -63,7 +64,7 @@ public class GraduatedIntervalQueue {
 	}
 
 	public void load(IntArray _startingEntries) {
-		final ArrayList<Integer> tmp = new ArrayList<Integer>(_startingEntries.size);
+		final ArrayList<Integer> tmp = new ArrayList<>(_startingEntries.size);
 		for (int i: _startingEntries.items) {
 			tmp.add(i);
 		}
@@ -71,10 +72,10 @@ public class GraduatedIntervalQueue {
 	}
 	
 	public void load(ArrayList<Integer> _startingEntries) {
-		startingEntries = new ArrayList<Integer>();
-		bounderiesNameList = new ArrayList<Integer>();
-		bounderiesByName = new HashMap<Integer, Integer>();
-		bounderiesByPosition = new HashMap<Integer, Integer>();
+		startingEntries = new ArrayList<>();
+		bounderiesNameList = new ArrayList<>();
+		bounderiesByName = new HashMap<>();
+		bounderiesByPosition = new HashMap<>();
 		startingEntries.addAll(_startingEntries);// dedupeAndSort(_startingEntries);
 		intervalQueue = getQueue(startingEntries);
 		locateBounderies();
@@ -84,8 +85,8 @@ public class GraduatedIntervalQueue {
 	@SuppressWarnings("unused")
 	private ArrayList<Integer> dedupeAndSort(ArrayList<Integer> list) {
 		ArrayList<Integer> newList;
-		newList = new ArrayList<Integer>();
-		newList = new ArrayList<Integer>(new HashSet<Integer>(list));
+		newList = new ArrayList<>();
+		newList = new ArrayList<>(new HashSet<>(list));
 		Collections.sort(newList);
 		return newList;
 	}
@@ -117,16 +118,17 @@ public class GraduatedIntervalQueue {
 		int listSize = 0;
 		int ix, index;
 
-		levelMarks = new ArrayList<Point>();
+		levelMarks = new ArrayList<>();
 		Point thisLevelMarks = null;
 		Point prevLevelMarks = null;
 
 		listSize = bounderiesNameList.size();
 		for (ix = 0; ix < levels; ix++) {
-			index = (int) Math.ceil((float) listSize
+			index = (int) Math.ceil(listSize
 					* ((float) ix / (float) levels));
-			if (index >= bounderiesNameList.size())
+			if (index >= bounderiesNameList.size()) {
 				continue;
+			}
 			item = bounderiesNameList.get(index);
 			startingPoint = bounderiesByName.get(item);
 			thisLevelMarks = new Point(startingPoint, intervalQueue.size() - 1);
@@ -143,11 +145,11 @@ public class GraduatedIntervalQueue {
 	}
 
 	int getLevelStartPosition(int level) {
-		return (int) levelMarks.get(level).x;
+		return levelMarks.get(level).x;
 	}
 
 	int getLevelEndPosition(int level) {
-		return (int) levelMarks.get(level).y;
+		return levelMarks.get(level).y;
 	}
 
 	int getLevelStartName(int level) {
@@ -164,8 +166,8 @@ public class GraduatedIntervalQueue {
 		int prev = 0;
 		int current = 0;
 
-		vx1 = new ArrayList<Integer>();
-		vx2 = new ArrayList<Integer>();
+		vx1 = new ArrayList<>();
+		vx2 = new ArrayList<>();
 
 		/**
 		 * scan for and try and prevent "repeats"
@@ -176,8 +178,9 @@ public class GraduatedIntervalQueue {
 			vx2.clear();
 			hasDupes = false;
 			for (ix = 0; ix < queue.size(); ix++) {
-				if (queue.get(ix) == 0)
+				if (queue.get(ix) == 0) {
 					continue;
+				}
 				current = queue.get(ix);
 				if (current != prev) {
 					vx1.add(current);
@@ -224,7 +227,7 @@ public class GraduatedIntervalQueue {
 	private ArrayList<Integer> getOffsets() {
 		ArrayList<Integer> o1;
 		int ip, depth = 6, stagger = 2, ix, basePower = 2;
-		o1 = new ArrayList<Integer>();
+		o1 = new ArrayList<>();
 
 		if (isBriefList()) {
 			depth = 6;
@@ -255,7 +258,7 @@ public class GraduatedIntervalQueue {
 		ArrayList<Integer> o1;
 		int ip, depth = 6, stagger = 4, ix;
 
-		o1 = new ArrayList<Integer>();
+		o1 = new ArrayList<>();
 
 		for (ix = 0; ix < stagger; ix++) {
 			for (ip = 0; ip <= depth; ip++) {
@@ -271,8 +274,8 @@ public class GraduatedIntervalQueue {
 		ArrayList<Integer> newQueue = null;
 		ArrayList<Integer> samples;
 
-		newQueue = new ArrayList<Integer>();
-		samples = new ArrayList<Integer>();
+		newQueue = new ArrayList<>();
+		samples = new ArrayList<>();
 		if (isDoubleMode()) {
 			offsets = getOffsetsDoubled();
 		} else {
@@ -290,12 +293,14 @@ public class GraduatedIntervalQueue {
 		for (ix = 0; ix < samples.size(); ix++) {
 			ia = 0;
 			for (iy = 0; iy < offsets.size(); iy++) {
-				while (newQueue.size() < ia + 1)
+				while (newQueue.size() < ia + 1) {
 					newQueue.add(0);
+				}
 				while (newQueue.get(ia) != 0) {
 					ia++;
-					while (newQueue.size() < ia + 1)
+					while (newQueue.size() < ia + 1) {
 						newQueue.add(0);
+					}
 				}
 				newQueue.set(ia, samples.get(ix));
 				ia += offsets.get(iy);
@@ -313,7 +318,7 @@ public class GraduatedIntervalQueue {
 	}
 
 	public void setSyllabaryFor(HashMap<String, String> syllabary) {
-		this.syllabaryFor = syllabary;
+		syllabaryFor = syllabary;
 	}
 
 	@SuppressWarnings("unused")
@@ -325,15 +330,19 @@ public class GraduatedIntervalQueue {
 		Collections.sort(samples, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
-				if (syllabaryFor.containsKey(o1))
+				if (syllabaryFor.containsKey(o1)) {
 					o1 = syllabaryFor.get(o1);
-				if (syllabaryFor.containsKey(o2))
+				}
+				if (syllabaryFor.containsKey(o2)) {
 					o2 = syllabaryFor.get(o2);
-				if (o1.length() < o2.length())
+				}
+				if (o1.length() < o2.length()) {
 					return -1;
-				if (o1.length() > o2.length())
+				}
+				if (o1.length() > o2.length()) {
 					return 1;
-				return (o1.compareTo(o2));
+				}
+				return o1.compareTo(o2);
 			}
 		});
 	}
@@ -342,11 +351,13 @@ public class GraduatedIntervalQueue {
 		Collections.sort(samples, new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
-				if (o1.length() < o2.length())
+				if (o1.length() < o2.length()) {
 					return -1;
-				if (o1.length() > o2.length())
+				}
+				if (o1.length() > o2.length()) {
 					return 1;
-				return (o1.compareTo(o2));
+				}
+				return o1.compareTo(o2);
 			}
 		});
 	}
@@ -356,7 +367,7 @@ public class GraduatedIntervalQueue {
 		ArrayList<Integer> mixedUp;
 		ArrayList<Integer> offsets;
 
-		mixedUp = new ArrayList<Integer>();
+		mixedUp = new ArrayList<>();
 		offsets = getOffsets();
 		/**
 		 * re-arrange samples into a non-random, non-alpha order
@@ -365,10 +376,12 @@ public class GraduatedIntervalQueue {
 			while (samples.size() > 0) {
 				for (int iy = 0; samples.size() > 0 && iy < offsets.size(); iy++) {
 					int ia = offsets.get(iy);
-					while (mixedUp.size() > ia && mixedUp.get(ia) != 0)
+					while (mixedUp.size() > ia && mixedUp.get(ia) != 0) {
 						ia++;
-					while (mixedUp.size() < ia + 1)
+					}
+					while (mixedUp.size() < ia + 1) {
 						mixedUp.add(0);
+					}
 					mixedUp.set(ia, samples.get(0));
 					samples.remove(0);
 				}

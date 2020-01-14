@@ -2,6 +2,7 @@ package com.cherokeelessons.maze.entity;
 
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.controllers.Controller;
@@ -90,12 +91,12 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 
 	@Override
 	public void disconnected(Controller controller) {
-		System.out.println("LOST CONTROLLER!");
+		Gdx.app.log(this.getClass().getSimpleName(),"LOST CONTROLLER!");
 	}
 
 	@Override
 	public void connected(Controller controller) {
-		System.out.println("NEW CONTROLLER!");
+		Gdx.app.log(this.getClass().getSimpleName(),"NEW CONTROLLER!");
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class Paused extends ScreenBase {
 		@Override
 		public void clicked(InputEvent event, float x, float y) {
 //			super.clicked(event, x, y);
-			System.out.println("EVENT: "+event.getType().name());
+			Gdx.app.log(this.getClass().getSimpleName(),"EVENT: "+event.getType().name());
 			ScreenChangeEvent e = new ScreenChangeEvent();
 			e.screen=ScreenList.Previous;
 			NumbersMaze.post(e);
@@ -168,8 +168,8 @@ public class Paused extends ScreenBase {
 		pixmap = new Pixmap(width, height, Format.RGBA8888);
 		pixmap.getPixels().clear();
 		pixmap.getPixels().put(lines);
-		System.out.println("getStageshot size: "+pixmap.getWidth()+"x"+pixmap.getHeight());
-		System.out.println("viewport size: "+gameStage.getWidth()+"x"+gameStage.getHeight());
+		Gdx.app.log(this.getClass().getSimpleName(),"getStageshot size: "+pixmap.getWidth()+"x"+pixmap.getHeight());
+		Gdx.app.log(this.getClass().getSimpleName(),"viewport size: "+gameStage.getWidth()+"x"+gameStage.getHeight());
 		scaleX=gameStage.getWidth()/pixmap.getWidth();
 		scaleY=gameStage.getHeight()/pixmap.getHeight();
 		return pixmap;

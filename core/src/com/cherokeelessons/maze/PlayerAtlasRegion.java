@@ -15,20 +15,21 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 public class PlayerAtlasRegion {
 	public TextureAtlas playerAtlas=null;
 	public void init(int packSize) {
-		System.out.println("PACKING PLAYER TEXTURES");
+		Gdx.app.log(this.getClass().getSimpleName(),"PACKING PLAYER TEXTURES");
 		final PixmapPacker packer = new PixmapPacker(packSize, packSize,
 				Format.RGBA8888, 1, true);
 
-		String plist_name = ("player-64px/plist.txt");
+		String plist_name = "player-64px/plist.txt";
 		FileHandle plist = Gdx.files.internal(plist_name);
 		String list = plist.readString();
-		ArrayList<String> imgList = new ArrayList<String>();
+		ArrayList<String> imgList = new ArrayList<>();
 		imgList.addAll(Arrays.asList(list.split("\n")));
-		System.out.println("Read player " + imgList.size() + " plist entries.");
+		Gdx.app.log(this.getClass().getSimpleName(),"Read player " + imgList.size() + " plist entries.");
 		for (int ix = 0; ix < imgList.size(); ix++) {
 			String img = imgList.get(ix);
-			if (img.trim().length() < 1)
+			if (img.trim().length() < 1) {
 				continue;
+			}
 			File f = new File(img);
 			Pixmap p = new Pixmap(Gdx.files.internal(img));
 			packer.pack(f.getName().replace(".png", ""), p);

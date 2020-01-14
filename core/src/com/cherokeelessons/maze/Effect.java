@@ -57,17 +57,23 @@ public class Effect {
 	}
 	@Subscribe
 	public void setVolume(VolumeChallenge v){
-		if (v.vol<0f || v.vol>1f) return;
+		if (v.vol<0f || v.vol>1f) {
+			return;
+		}
 		volume_challenge=v.vol;
 	}
 	@Subscribe
 	public void setVolume(VolumeMusic v){
-		if (v.vol<0f || v.vol>1f) return;
+		if (v.vol<0f || v.vol>1f) {
+			return;
+		}
 		volume_music=v.vol;
 	}
 	@Subscribe
 	public void setVolume(VolumeEffects v){
-		if (v.vol<0f || v.vol>1f) return;
+		if (v.vol<0f || v.vol>1f) {
+			return;
+		}
 		volume_effects=v.vol;
 	}
 
@@ -101,7 +107,7 @@ public class Effect {
 		preload(e.name);
 	}
 	public static class DoAudioEvent {
-		final public Array<Integer> audioQueue=new Array<Integer>();
+		final public Array<Integer> audioQueue=new Array<>();
 		final public Vector2 location=new Vector2();
 	}
 	@Subscribe
@@ -149,9 +155,9 @@ public class Effect {
 		}
 	}
 
-	private HashMap<String, Sound> cache_sound = new HashMap<String, Sound>();
-	private HashMap<String, Music> cache_music = new HashMap<String, Music>();
-	private HashMap<String, Long> lastPlayed = new HashMap<String, Long>();
+	private HashMap<String, Sound> cache_sound = new HashMap<>();
+	private HashMap<String, Music> cache_music = new HashMap<>();
+	private HashMap<String, Long> lastPlayed = new HashMap<>();
 
 	private void preload(String sound) {
 		synchronized (cache_sound) {
@@ -162,7 +168,7 @@ public class Effect {
 					+ ".ogg"));
 			cache_sound.put(sound, s);
 			lastPlayed.put(sound, 0l);
-			System.out.println("Preload: " + sound);
+			Gdx.app.log(this.getClass().getSimpleName(),"Preload: " + sound);
 		}
 	}
 
@@ -186,7 +192,7 @@ public class Effect {
 			return s.loop(volume * volume_effects);
 		} else {
 			return s.play(volume * volume_effects);
-		}		
+		}
 	}
 
 	public void stop(String sound, long sound_id) {
@@ -218,7 +224,7 @@ public class Effect {
 		@Override
 		public void run() {
 			synchronized (cache_music) {
-				if (activeNumber != null && !this.activeNumber.isPlaying()) {
+				if (activeNumber != null && !activeNumber.isPlaying()) {
 					activeNumber = cache_music.get(activeNumberName);
 					if (activeNumber != null) {
 						activeNumber.setVolume(0);
@@ -232,7 +238,7 @@ public class Effect {
 						return;
 					}
 				}
-				if (this.activeNumber == null) {
+				if (activeNumber == null) {
 					activeNumberName = sequence.removeIndex(0);
 					activeNumber = play_music("numbers/" + activeNumberName,
 							1f, false);
@@ -245,7 +251,7 @@ public class Effect {
 
 	public static class PlayNumberSequence {
 		public ScreenBase screen=null;
-		final public Array<String> list=new Array<String>(); 
+		final public Array<String> list=new Array<>();
 	}
 	@Subscribe
 	public void play_number_sequence(PlayNumberSequence e) {
@@ -334,7 +340,7 @@ public class Effect {
 			m.setVolume(volume_music*vol);
 			m.play();
 		}
-		System.out.println("music cache size: " + cache_music.size());
+		Gdx.app.log(this.getClass().getSimpleName(),"music cache size: " + cache_music.size());
 		return m;
 	}
 

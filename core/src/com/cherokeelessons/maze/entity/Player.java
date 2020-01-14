@@ -3,6 +3,7 @@ package com.cherokeelessons.maze.entity;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -132,7 +133,7 @@ public class Player extends Entity {
 							getStage().addActor(s.getLabel());
 						}
 					} else {
-						System.out.println("DEATH ORB!");
+						Gdx.app.log(this.getClass().getSimpleName(),"DEATH ORB!");
 						badAccumulator+=arrowGroup.accumulator;
 						DeathOrb orb=new DeathOrb(body.getWorld(), worldScale, arrowGroup.getWorldPos(), arrowGroup.accumulator);
 						getStage().addActor(orb);
@@ -343,7 +344,7 @@ public class Player extends Entity {
 
 	private void showAvatar(int dir) {
 		if (dir < 0 || dir > 3) {
-			System.out.println("Bad dir: " + dir);
+			Gdx.app.log(this.getClass().getSimpleName(),"Bad dir: " + dir);
 			return;
 		}
 
@@ -374,7 +375,7 @@ public class Player extends Entity {
 			setOffsetY(-regionHeight / 2);
 			resetFixtures(regionWidth*avatarScale, regionHeight*avatarScale);
 		} else {
-			System.out.println("DIR IS NULL: " + dir + ", i: " + i);
+			Gdx.app.log(this.getClass().getSimpleName(),"DIR IS NULL: " + dir + ", i: " + i);
 		}
 	}
 

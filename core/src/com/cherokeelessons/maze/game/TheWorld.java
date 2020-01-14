@@ -35,7 +35,7 @@ public class TheWorld {
 	public static final short TYPE_EXPLOSION = 0x0100;
 	public static final short TYPE_ENEMY = 0x0200;
 
-	private Array<ArrowGroup> orphan_tracker = new Array<ArrowGroup>();
+	private Array<ArrowGroup> orphan_tracker = new Array<>();
 
 	public int pointsInLimbo() {
 		int total = 0;
@@ -65,12 +65,13 @@ public class TheWorld {
 		}
 	}
 
-	Array<Integer> dieDeck = new Array<Integer>();
+	Array<Integer> dieDeck = new Array<>();
 
 	public int badValue_getNext(int maxFaceValue) {
 		int gbv = 0;
-		if (badAccumulator < 1)
+		if (badAccumulator < 1) {
 			return 0;
+		}
 		if (badAccumulator == 1) {
 			badAccumulator = 0;
 			return 1;
@@ -78,10 +79,12 @@ public class TheWorld {
 		do {
 			if (dieDeck.size == 0) {
 				int sides = 6;
-				if (badAccumulator > 30 && maxFaceValue > 30)
+				if (badAccumulator > 30 && maxFaceValue > 30) {
 					sides = 7;
-				if (badAccumulator > 100 && maxFaceValue > 100)
+				}
+				if (badAccumulator > 100 && maxFaceValue > 100) {
 					sides = 8;
+				}
 				for (int i = 0; i < sides; i++) {
 					dieDeck.add(i + 1);
 				}
@@ -89,10 +92,12 @@ public class TheWorld {
 			}
 			gbv = dieDeck.removeIndex(0);
 			// convert die face into VALUE
-			if (gbv == 7)
+			if (gbv == 7) {
 				gbv = 20;
-			if (gbv == 8)
+			}
+			if (gbv == 8) {
 				gbv = 80;
+			}
 		} while (gbv > badAccumulator);
 		badAccumulator -= gbv;
 		return gbv;
@@ -103,9 +108,9 @@ public class TheWorld {
 	}
 
 	private World world = null;
-	public Array<Entity[]> c = new Array<Entity[]>();
+	public Array<Entity[]> c = new Array<>();
 
-	private Array<Entity> prevCollides = new Array<Entity>();
+	private Array<Entity> prevCollides = new Array<>();
 
 	public int getCollidesCount() {
 		return prevCollides.size;
@@ -114,8 +119,9 @@ public class TheWorld {
 	private boolean hasBoom = false;
 
 	public void step(float delta) {
-		if (world == null)
+		if (world == null) {
 			return;
+		}
 		for (int ix = 0; ix < prevCollides.size; ix++) {
 			prevCollides.get(ix).clearCollides();
 		}
@@ -216,7 +222,7 @@ public class TheWorld {
 					if (i[0]<4) {
 						return;
 					}
-					System.out.println("FORCE: "+i[0]+", BETWEEN: "+e1.identity+" <-> "+e2.identity);
+					Gdx.app.log(this.getClass().getSimpleName(),"FORCE: "+i[0]+", BETWEEN: "+e1.identity+" <-> "+e2.identity);
 					hasBoom=true;
 					Gdx.app.postRunnable(new Runnable() {
 						final Vector2 v1=new Vector2().set(b1.getWorldCenter());
@@ -282,8 +288,8 @@ public class TheWorld {
 			eb.addCollision(ea, pos);
 			prevCollides.add(ea);
 			prevCollides.add(eb);
-			if ((ea.identity == Entity.BLOCK && eb.identity == Entity.WALL)
-					|| (ea.identity == Entity.WALL && eb.identity == Entity.BLOCK)) {
+			if (ea.identity == Entity.BLOCK && eb.identity == Entity.WALL
+					|| ea.identity == Entity.WALL && eb.identity == Entity.BLOCK) {
 				ea.addAudio(Effect.BOX_MOVED);
 			}
 			if (ea.identity == Entity.BLOCK && eb.identity == Entity.BLOCK) {

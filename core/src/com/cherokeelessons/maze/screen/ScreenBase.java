@@ -190,10 +190,10 @@ public class ScreenBase implements Screen {
 		viewPortSize.y=newHeight;
 
 		if (isDebug()) {
-			System.out.println("=============================");
-			System.out.println("scale: " + scale);
-			System.out.println("Width: " + newWidth + ", Height: " + newHeight);
-			System.out.println("=============================");
+			Gdx.app.log(this.getClass().getSimpleName(),"=============================");
+			Gdx.app.log(this.getClass().getSimpleName(),"scale: " + scale);
+			Gdx.app.log(this.getClass().getSimpleName(),"Width: " + newWidth + ", Height: " + newHeight);
+			Gdx.app.log(this.getClass().getSimpleName(),"=============================");
 		}
 		
 		backDrop.getViewport().update(width, height, false);
@@ -231,7 +231,7 @@ public class ScreenBase implements Screen {
 			return;
 		}
 		if (isDebug()) {
-			System.out.println("Show: " + getClass().getSimpleName());
+			Gdx.app.log(this.getClass().getSimpleName(),"Show: " + getClass().getSimpleName());
 		}
 		connectInputProcessor();
 	}
@@ -243,7 +243,7 @@ public class ScreenBase implements Screen {
 		if (isDisposed) {
 			return;
 		}
-		System.out.println("Hide: " + getClass().getSimpleName());
+		Gdx.app.log(this.getClass().getSimpleName(),"Hide: " + getClass().getSimpleName());
 		disconnectInputProcessor();
 	}
 
@@ -252,7 +252,7 @@ public class ScreenBase implements Screen {
 		if (isDisposed) {
 			return;
 		}
-		System.out.println("Pause: " + getClass().getSimpleName());
+		Gdx.app.log(this.getClass().getSimpleName(),"Pause: " + getClass().getSimpleName());
 		ScreenChangeEvent e = new ScreenChangeEvent();
 		e.screen=ScreenList.Paused;
 		NumbersMaze.post(e);
@@ -263,7 +263,7 @@ public class ScreenBase implements Screen {
 		if (isDisposed) {
 			return;
 		}
-		System.out.println("Resume: " + getClass().getSimpleName());
+		Gdx.app.log(this.getClass().getSimpleName(),"Resume: " + getClass().getSimpleName());
 		if (r==null) {
 			r=new ShapeRenderer();
 		}
@@ -275,7 +275,7 @@ public class ScreenBase implements Screen {
 			return;
 		}
 		isDisposed=true;
-		System.out.println("Dispose: " + getClass().getSimpleName());
+		Gdx.app.log(this.getClass().getSimpleName(),"Dispose: " + getClass().getSimpleName());
 		disconnectInputProcessor();
 		
 		gameStage.clear();

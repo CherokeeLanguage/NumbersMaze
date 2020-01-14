@@ -3,6 +3,7 @@ package com.cherokeelessons.maze.screen;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.controllers.Controller;
@@ -71,7 +72,7 @@ public class MainMenu extends ScreenBase {
 			int item=menuItems.size();
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("New Game!");
+				Gdx.app.log(this.getClass().getSimpleName(),"New Game!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();
@@ -85,7 +86,7 @@ public class MainMenu extends ScreenBase {
 			int item=menuItems.size();
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Load Game!");
+				Gdx.app.log(this.getClass().getSimpleName(),"Load Game!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();
@@ -98,7 +99,7 @@ public class MainMenu extends ScreenBase {
 			int item=menuItems.size();
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Ultimate Challenge!");
+				Gdx.app.log(this.getClass().getSimpleName(),"Ultimate Challenge!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();
@@ -111,7 +112,7 @@ public class MainMenu extends ScreenBase {
 			int item=menuItems.size();
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("Options!");
+				Gdx.app.log(this.getClass().getSimpleName(),"Options!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();
@@ -125,7 +126,7 @@ public class MainMenu extends ScreenBase {
 			int item=menuItems.size();
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
-				System.out.println("About!");
+				Gdx.app.log(this.getClass().getSimpleName(),"About!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();
@@ -364,7 +365,7 @@ public class MainMenu extends ScreenBase {
 
 	@Override
 	public void hide() {
-		System.out.println("main menu hide");
+		Gdx.app.log(this.getClass().getSimpleName(),"main menu hide");
 		super.hide();
 		background_music(false);
 		Controllers.removeListener(menuResponder);

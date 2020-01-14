@@ -62,7 +62,7 @@ public class NumbersMaze extends Game {
 	}
 	
 //	private NumbersMaze app=null;
-	public ArrayList<Controller> gamepads=new ArrayList<>();
+	public Array<Controller> gamepads=new Array<>();
 	public int textureSize;
 	private ControllerListener padWatchDog;
 	
@@ -102,7 +102,7 @@ public class NumbersMaze extends Game {
 		Boom.setRegion(S.getArg().findRegion("explosion"));
 		DeathOrb.setAtlas(S.getArg().findRegions("a_fireball", 0, 63, 3));
 
-		System.out.print("Loading level song list and ");
+		Gdx.app.log(this.getClass().getSimpleName(),"Loading level song list");
 		FileHandle plist = Gdx.files.getFileHandle("audio/plist-levels.txt", Files.FileType.Internal);
 		songs = plist.readString().split("\n");
 		for (int ix=0; ix<songs.length; ix++) {
@@ -116,20 +116,20 @@ public class NumbersMaze extends Game {
 			songs[ix]=songs[iy];
 			songs[iy]=temp;
 		}
-		System.out.println(songs.length+" songs found.");
+		Gdx.app.log(this.getClass().getSimpleName(),songs.length+" songs found.");
 	}
 
 	private TextureAtlas packTextures(int packSize) {
 
 		TextureAtlas newAtlas=null;
 		
-		System.out.println("PACKING TEXTURES");
+		Gdx.app.log(this.getClass().getSimpleName(),"PACKING TEXTURES");
 		final PixmapPacker packer = new PixmapPacker(packSize, packSize,
 				Format.RGBA8888, 1, true);
 
 		ArrayList<String> imgList = new ArrayList<>();
 		imgList.addAll(Arrays.asList(Gdx.files.internal("720p/plist.txt").readString("UTF-8").split("\n")));
-		System.out.println("Read " + imgList.size() + " plist entries.");
+		Gdx.app.log(this.getClass().getSimpleName(),"Read " + imgList.size() + " plist entries.");
 		for (int ix = 0; ix < imgList.size(); ix++) {
 			String img = imgList.get(ix);
 			if (img.trim().length() < 1) {
@@ -160,28 +160,28 @@ public class NumbersMaze extends Game {
 		padWatchDog=new PlayerInput(){
 			@Override
 			public void disconnected(Controller controller) {
-				for (int ix=0; ix<gamepads.size(); ix++) {
+				for (int ix=0; ix<gamepads.size; ix++) {
 					if (gamepads.get(ix).equals(controller)) {
 						gamepads.set(ix, null);
-						System.out.println("LOST PLAYER INPUT: "+ix);
+						Gdx.app.log(this.getClass().getSimpleName(),"LOST PLAYER INPUT: "+ix);
 						break;
 					}
 				}
 			}
 			@Override
 			public void connected(Controller controller) {
-				for (int ix=0; ix<gamepads.size(); ix++) {
+				for (int ix=0; ix<gamepads.size; ix++) {
 					if (gamepads.get(ix)==null) {
 						gamepads.set(ix, controller);
-						System.out.println("REPLACED PLAYER INPUT: "+ix);
+						Gdx.app.log(this.getClass().getSimpleName(),"REPLACED PLAYER INPUT: "+ix);
 						return;
 					}
 					if (gamepads.get(ix).equals(controller)) {
-						System.out.println("DUPLICATE PLAYER INPUT: "+ix);
+						Gdx.app.log(this.getClass().getSimpleName(),"DUPLICATE PLAYER INPUT: "+ix);
 						return;
 					}
 				}
-				System.out.println("NEW PLAYER INPUT: "+gamepads.size());
+				Gdx.app.log(this.getClass().getSimpleName(),"NEW PLAYER INPUT: "+gamepads.size);
 				gamepads.add(controller);
 			}
 		};
@@ -190,7 +190,7 @@ public class NumbersMaze extends Game {
 		Array<Controller> pads = Controllers.getControllers();
 		for (Controller controller : pads) {
 			gamepads.add(controller);
-			System.out.println("Found input device: "+controller.getName());
+			Gdx.app.log(this.getClass().getSimpleName(),"Found input device: "+controller.getName());
 		}
 	}
 

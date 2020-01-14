@@ -103,7 +103,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		giq.load(seed);
 		challengeList.clear();
 		ArrayList<Integer> list = giq.getIntervalQueue();
-		System.out.println("MASTER CHALLENGE LIST: " + list.size() + " := "
+		Gdx.app.log(this.getClass().getSimpleName(),"MASTER CHALLENGE LIST: " + list.size() + " := "
 				+ list);
 		int split = list.size() / challengeSplit;
 		int setStart = split * subSet;
@@ -111,7 +111,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		for (int ix = setStart; ix < nextSet; ix++) {
 			challengeList.add(list.get(ix));
 		}
-		System.out.println("LEVEL CHALLENGE LIST: " + challengeList.size
+		Gdx.app.log(this.getClass().getSimpleName(),"LEVEL CHALLENGE LIST: " + challengeList.size
 				+ " := " + challengeList);
 		challengeTotalValue = 0;
 		for (Integer i : challengeList) {
@@ -255,7 +255,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		gameStage.addActor(tiles);
 
-		System.out.println("STAGE SIZE: " + gameStage.getWidth() + "x"
+		Gdx.app.log(this.getClass().getSimpleName(),"STAGE SIZE: " + gameStage.getWidth() + "x"
 				+ gameStage.getHeight());
 
 		player1 = new Player();
@@ -268,7 +268,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		joylist = Controllers.getControllers();
 
 		for (Controller c : joylist) {
-			System.out.println("INPUT: " + c.getName());
+			Gdx.app.log(this.getClass().getSimpleName(),"INPUT: " + c.getName());
 		}
 
 		player1.gamepad = gamepadInput;
@@ -288,7 +288,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	public void setupMaze() {
-		System.out.println("MAZE: " + level);
+		Gdx.app.log(this.getClass().getSimpleName(),"MAZE: " + level);
 		tiles.clear();
 		blockList.clear();
 		calculateChallengeList(level);
@@ -304,10 +304,9 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		if (blockListValue < challengeTotalValue) {
 			player1.badValue_add(challengeTotalValue - blockListValue);
 		}
-		System.out.println("challengeTotalValue: " + challengeTotalValue);
-		System.out.println("blockListValue: " + blockListValue);
-		System.out
-				.println("player1.badValue: " + player1.badValue_getPending());
+		Gdx.app.log(this.getClass().getSimpleName(),"challengeTotalValue: " + challengeTotalValue);
+		Gdx.app.log(this.getClass().getSimpleName(),"blockListValue: " + blockListValue);
+		Gdx.app.log(this.getClass().getSimpleName(),"player1.badValue: " + player1.badValue_getPending());
 		label_level.setText("Maze Level: " + level
 				+ "\nExplode DICE in this combination: "
 				+ GenerateNumber.getCardinal(theChallenge));
@@ -374,7 +373,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		super.show();
 		startTime += System.currentTimeMillis() - tickOffset;
 		Controllers.addListener(player1.gamepad);
-		System.out.println("LEVEL: " + level);
+		Gdx.app.log(this.getClass().getSimpleName(),"LEVEL: " + level);
 		if (activeSong != null) {
 			MusicPlayEvent e = new MusicPlayEvent();
 			e.name = activeSong;
@@ -572,7 +571,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					sinceLastNotice = System.currentTimeMillis() + 30000;
 				}
 			}
-			System.out.println("=== totalValueRemaining: " + totalValueLeft);
+			Gdx.app.log(this.getClass().getSimpleName(),"=== totalValueRemaining: " + totalValueLeft);
 			restoreBlockTick = System.currentTimeMillis();
 		}
 		// should portal be available check

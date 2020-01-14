@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
+
 public class Maze {
 	private int seed;
 	private int width;
@@ -22,13 +24,13 @@ public class Maze {
 		Random r = new Random(seed);
 		int totalCells = width * height;
 		
-		ArrayList<CellPosition> stack = new ArrayList<CellPosition>();
+		ArrayList<CellPosition> stack = new ArrayList<>();
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				maze[x][y] = new MazeCell();
 			}
 		}
-		List<CellPosition> neighbors = new ArrayList<Maze.CellPosition>();
+		List<CellPosition> neighbors = new ArrayList<>();
 		CellPosition currentCell = new CellPosition(r.nextInt(width), r.nextInt(height));
 		int visitedCells = 1; //start at one to account for our starting cell
 		while (visitedCells < totalCells) {
@@ -39,23 +41,27 @@ public class Maze {
 			// check west
 			cx = x - 1;
 			cy = y;
-			if (cx >= 0 && maze[cx][cy].hasAllWalls())
+			if (cx >= 0 && maze[cx][cy].hasAllWalls()) {
 				neighbors.add(new CellPosition(cx, cy));
+			}
 			// check east
 			cx = x + 1;
 			cy = y;
-			if (cx < width && maze[cx][cy].hasAllWalls())
+			if (cx < width && maze[cx][cy].hasAllWalls()) {
 				neighbors.add(new CellPosition(cx, cy));
+			}
 			// check south
 			cx = x;
 			cy = y - 1;
-			if (cy >= 0 && maze[cx][cy].hasAllWalls())
+			if (cy >= 0 && maze[cx][cy].hasAllWalls()) {
 				neighbors.add(new CellPosition(cx, cy));
+			}
 			// check north
 			cx = x;
 			cy = y + 1;
-			if (cy < height && maze[cx][cy].hasAllWalls())
+			if (cy < height && maze[cx][cy].hasAllWalls()) {
 				neighbors.add(new CellPosition(cx, cy));
+			}
 
 			if (neighbors.size() > 0) {
 				int next=r.nextInt(neighbors.size());
@@ -84,12 +90,12 @@ public class Maze {
 				visitedCells++;
 			} else {
 				if (stack.size() == 0){
-					System.out.println("MAZE GEN BUG!");
-					System.out.println("VISITED CELLS: "+visitedCells);
-					System.out.println("TOTAL CELLS: "+totalCells);
+					Gdx.app.log(this.getClass().getSimpleName(),"MAZE GEN BUG!");
+					Gdx.app.log(this.getClass().getSimpleName(),"VISITED CELLS: "+visitedCells);
+					Gdx.app.log(this.getClass().getSimpleName(),"TOTAL CELLS: "+totalCells);
 					break;
 				}
-				currentCell = stack.get(stack.size() - 1);				
+				currentCell = stack.get(stack.size() - 1);
 				stack.remove(stack.size() - 1);
 			}
 		}
