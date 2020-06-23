@@ -43,11 +43,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-     eclipse {
+    eclipse {
     	project {
         	name = "CherokeeNumbersMaze-android"
-    	}
-    	
+    	}    	
 	}
 }
 
