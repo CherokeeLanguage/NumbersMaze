@@ -58,7 +58,7 @@ project(":desktop") {
     }
     eclipse {
     	project {
-        	name = "CherokeeNumbersMaze-desktop"
+        	name = appName+"-desktop"
     	}
 	}
 }
@@ -93,6 +93,12 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     }
+    
+     eclipse {
+    	project {
+        	name = appName+"-android"
+    	}
+	}
 }
 
 project(":ios") {
@@ -110,9 +116,9 @@ project(":ios") {
         api "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
     }
     eclipse {
-    	project {
-        	name = "CherokeeNumbersMaze-ios"
-    	}
+	    	project {
+	        	name = appName+"-ios"
+	    	}
 	}
     
 }
@@ -131,7 +137,7 @@ project(":core") {
     }
     eclipse {
     	project {
-        	name = "CherokeeNumbersMaze-core"
+        	name = appName+"-core"
     	}
 	}
     
