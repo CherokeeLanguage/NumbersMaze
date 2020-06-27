@@ -205,8 +205,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.RED));
 		infoStyle.background = new NinePatchDrawable(infoStyle_9);
 
-		label_level = new Label("Maze: " + 0, ls);
-		// label_level.getColor().a=.8f;
+		label_level = new Label(levelInfoText(), ls);
 		label_level.setX(overscan.x);
 		label_level.setY(overscan.y);
 		hud.addActor(label_level);
@@ -301,11 +300,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		Gdx.app.log(this.getClass().getSimpleName(), "challengeTotalValue: " + challengeTotalValue);
 		Gdx.app.log(this.getClass().getSimpleName(), "blockListValue: " + blockListValue);
 		Gdx.app.log(this.getClass().getSimpleName(), "player1.badValue: " + player1.badValue_getPending());
-		label_level.setText("Maze Level: " + level + "\nNumber: " //
-				+ GenerateNumber.getCardinal(theChallenge) + " [" + theChallenge + "]");
+		label_level.setText(levelInfoText());
 		label_level.pack();
-		// S.getSnd().play_number_sequence(this, GenerateNumber
-		// .getAudioSequence(theChallenge));
 
 		if (activeSong != null) {
 			MusicStopEvent e = new MusicStopEvent();
@@ -317,6 +313,11 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		e.name = activeSong;
 		e.loop = true;
 		NumbersMaze.post(e);
+	}
+
+	private String levelInfoText() {
+		return "Level: " + level + "\nNumber: " //
+				+ GenerateNumber.getCardinal(theChallenge) + " [" + theChallenge + "]";
 	}
 
 	static final float WORLD_TO_BOX = 20f;
@@ -480,10 +481,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			if (challengeList.size > 0) {
 				theChallenge = challengeList.removeIndex(0);
 				player1.theChallenge = theChallenge;
-				label_level.setText("Level: " + level + "\n" + GenerateNumber.getCardinal(theChallenge));
+				label_level.setText(levelInfoText());
 				label_level.pack();
 			} else {
-				label_level.setText("Level: " + level + "\nᏄᎳ! ᏄᎳ!");
+				label_level.setText("ᏄᎳ! ᏄᎳ!\nExit the stage!");
 				label_level.pack();
 				while (blockList.size > 0) {
 					blockList.removeIndex(0).remove(true);
