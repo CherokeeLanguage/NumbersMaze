@@ -46,9 +46,9 @@ public class LoadingScreen extends ScreenBase {
 				i.setY(py);
 				py+=i.getHeight();
 				logo.addActor(i);
-				if (y==0) {
-					px+=i.getWidth();
-				}
+			}
+			if (i!=null) {
+				px+=i.getWidth();
 			}
 		}
 		logo.setSize(px, py);
