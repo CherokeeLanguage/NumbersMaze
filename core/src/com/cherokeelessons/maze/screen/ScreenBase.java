@@ -23,7 +23,11 @@ import com.cherokeelessons.maze.stage.StageBase;
 
 public class ScreenBase implements Screen {
 
-	protected boolean isDisposed=false;
+	protected interface Renderer {
+		void render(float delta);
+	}
+
+	protected boolean isDisposed = false;
 	protected SpriteBatch sb;
 	protected AssetManager assets;
 	protected StageBase gameStage;
@@ -32,79 +36,53 @@ public class ScreenBase implements Screen {
 	protected StageBase hud;
 	protected DisplaySize.Resolution stageSize;
 	private boolean debug;
-	private boolean showFPS;
-	
-	final protected Vector2 viewPortSize=new Vector2();
 
-	public ScreenBase() {
-		sb=new SpriteBatch();
-		stageSize=DisplaySize._720p.size();
-		gameStage=new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		stageSafeZone=new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		backDrop=new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		hud=new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		setDebug(true);
-		setShowFPS(true);
-		backgroundColor = new Color(Color.BLACK);
-		currentElapsed = 0;
-		fps = new FPSLogger();
-		assets=new AssetManager();
-		
-		float gap = 0.075f;
-		float gw = stageSize.w * gap;
-		float gh = stageSize.h * gap;
-		overscan.x=gw;
-		overscan.y=gh;
-		overscan.width=stageSize.w - gw * 2;
-		overscan.height=stageSize.h - gh * 2;
-	}
+	private boolean showFPS;
+
+	final protected Vector2 viewPortSize = new Vector2();
 
 	public DisplaySize mode;
 	protected Color backgroundColor;
 	private float currentElapsed;
-	private FPSLogger fps;
-	protected boolean showOverScan=true;
-	
-	protected interface Renderer {
-		public void render(float delta);
-	}
-	
-	protected Renderer r_clear=new Renderer() {
+	private final FPSLogger fps;
+	protected boolean showOverScan = true;
+
+	protected Renderer r_clear = new Renderer() {
 		@Override
-		public void render(float delta) {
-			Gdx.gl.glClearColor(backgroundColor.r, backgroundColor.g,
-					backgroundColor.b, backgroundColor.a);
+		public void render(final float delta) {
+			Gdx.gl.glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		}
 	};
-	protected Renderer r_backDrop=new Renderer() {
+
+	protected Renderer r_backDrop = new Renderer() {
 		@Override
-		public void render(float delta) {
+		public void render(final float delta) {
 			backDrop.getViewport().apply();
 			backDrop.draw();
 		}
 	};
-	long gameStageActTime=0;
-	long gameStageRenderTime=0;
+	long gameStageActTime = 0;
+	long gameStageRenderTime = 0;
 	protected Renderer r_stage = new Renderer() {
 		@Override
-		public void render(float delta) {
+		public void render(final float delta) {
 			long start;
-			
-			start=System.currentTimeMillis();
+
+			start = System.currentTimeMillis();
 			gameStage.act(delta);
-			gameStageActTime=(System.currentTimeMillis()-start+gameStageActTime*4)/5;
-			
-			start=System.currentTimeMillis();
+			gameStageActTime = (System.currentTimeMillis() - start + gameStageActTime * 4) / 5;
+
+			start = System.currentTimeMillis();
 			gameStage.getViewport().apply();
 			gameStage.draw();
-			gameStageRenderTime=(System.currentTimeMillis()-start+gameStageRenderTime*4)/5;
+			gameStageRenderTime = (System.currentTimeMillis() - start + gameStageRenderTime * 4) / 5;
 		}
 	};
 	protected Renderer r_hud = new Renderer() {
-		
+
 		@Override
-		public void render(float delta) {
+		public void render(final float delta) {
 			hud.act(delta);
 			hud.getViewport().apply();
 			hud.draw();
@@ -112,20 +90,145 @@ public class ScreenBase implements Screen {
 	};
 	protected Renderer r_overscan = new Renderer() {
 		@Override
-		public void render(float delta) {
+		public void render(final float delta) {
 			if (showOverScan) {
 				drawOverscan();
 			}
 		}
 	};
+	private ShapeRenderer r = null;
+	final public Rectangle overscan = new Rectangle();
+
+	InputProcessor screenInputProcessor = null;
+	protected Array<Runnable> screenRunnable = new Array<>();
+
+	public ScreenBase() {
+		sb = new SpriteBatch();
+		stageSize = DisplaySize._720p.size();
+		gameStage = new StageBase(new FitViewport(stageSize.w, stageSize.h));
+		stageSafeZone = new StageBase(new FitViewport(stageSize.w, stageSize.h));
+		backDrop = new StageBase(new FitViewport(stageSize.w, stageSize.h));
+		hud = new StageBase(new FitViewport(stageSize.w, stageSize.h));
+		setDebug(true);
+		setShowFPS(true);
+		backgroundColor = new Color(Color.BLACK);
+		currentElapsed = 0;
+		fps = new FPSLogger();
+		assets = new AssetManager();
+
+		final float gap = 0.075f;
+		final float gw = stageSize.w * gap;
+		final float gh = stageSize.h * gap;
+		overscan.x = gw;
+		overscan.y = gh;
+		overscan.width = stageSize.w - gw * 2;
+		overscan.height = stageSize.h - gh * 2;
+	}
+
+	private void connectInputProcessor() {
+		if (screenInputProcessor == null) {
+			Gdx.input.setInputProcessor(hud);
+		} else {
+			Gdx.input.setInputProcessor(screenInputProcessor);
+		}
+	}
+
+	private void disconnectInputProcessor() {
+		if (Gdx.input.getInputProcessor() == null) {
+			return;
+		}
+		screenInputProcessor = Gdx.input.getInputProcessor();
+		Gdx.input.setInputProcessor(null);
+	}
+
 	@Override
-	public void render(float delta) {
+	public void dispose() {
+		if (isDisposed) {
+			return;
+		}
+		isDisposed = true;
+		Gdx.app.log(this.getClass().getSimpleName(), "Dispose: " + getClass().getSimpleName());
+		disconnectInputProcessor();
+
+		gameStage.clear();
+		gameStage.dispose();
+		gameStage = null;
+
+		stageSafeZone.clear();
+		stageSafeZone.dispose();
+		stageSafeZone = null;
+
+		backDrop.clear();
+		backDrop.dispose();
+		backDrop = null;
+
+		assets.clear();
+		assets.dispose();
+		assets = null;
+
+		if (r != null) {
+			r.dispose();
+			r = null;
+		}
+	}
+
+	private void drawOverscan() {
+		stageSafeZone.getViewport().apply(true);
+		final Camera cam = stageSafeZone.getCamera();
+		if (r == null) {
+			return;
+		}
+		r.setProjectionMatrix(cam.combined);
+		r.begin(ShapeType.Line);
+		r.setColor(Color.RED);
+		r.rect(overscan.x, overscan.y, overscan.width, overscan.height);
+		r.setColor(Color.BLUE);
+		r.rect(-1, -1, DisplaySize._720p.width() + 1, DisplaySize._720p.height() + 1);
+		r.end();
+	}
+
+	@Override
+	public void hide() {
+		if (isDisposed) {
+			return;
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "Hide: " + getClass().getSimpleName());
+		disconnectInputProcessor();
+	}
+
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public boolean isShowFPS() {
+		return showFPS;
+	}
+
+	@Override
+	public void pause() {
+		if (isDisposed) {
+			return;
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "Pause: " + getClass().getSimpleName());
+		final ScreenChangeEvent e = new ScreenChangeEvent();
+		e.screen = ScreenList.Paused;
+		NumbersMaze.post(e);
+	}
+
+	public void postRunnable(final Runnable runnable) {
+		synchronized (screenRunnable) {
+			screenRunnable.add(runnable);
+		}
+	}
+
+	@Override
+	public void render(final float delta) {
 		if (isDisposed) {
 			return;
 		}
 		synchronized (screenRunnable) {
-			int times=screenRunnable.size;
-			while (times>0) {
+			int times = screenRunnable.size;
+			while (times > 0) {
 				screenRunnable.removeIndex(0).run();
 				times--;
 			}
@@ -135,7 +238,7 @@ public class ScreenBase implements Screen {
 		r_stage.render(delta);
 		r_hud.render(delta);
 		r_overscan.render(delta);
-		
+
 		currentElapsed += delta;
 		if (currentElapsed > 2) {
 			currentElapsed = 0;
@@ -145,26 +248,8 @@ public class ScreenBase implements Screen {
 		}
 	}
 
-	private ShapeRenderer r = null;
-	private void drawOverscan() {
-		stageSafeZone.getViewport().apply(true);
-		Camera cam = stageSafeZone.getCamera();
-		if (r==null) {
-			return;
-		}
-		r.setProjectionMatrix(cam.combined);
-		r.begin(ShapeType.Line);
-		r.setColor(Color.RED);
-		r.rect(overscan.x, overscan.y, overscan.width, overscan.height);
-		r.setColor(Color.BLUE);
-		r.rect(-1, -1, DisplaySize._720p.width()+1, DisplaySize._720p.height()+1);
-		r.end();
-	}
-	
-	final public Rectangle overscan=new Rectangle();
-
 	@Override
-	public void resize(int width, int height) {
+	public void resize(final int width, final int height) {
 		if (isDisposed) {
 			return;
 		}
@@ -182,31 +267,31 @@ public class ScreenBase implements Screen {
 		if (scale_h > scale) {
 			scale = scale_h;
 		}
-		
+
 		newWidth = (float) Math.ceil(scale * width);
 		newHeight = (float) Math.ceil(scale * height);
-		
-		viewPortSize.x=newWidth;
-		viewPortSize.y=newHeight;
+
+		viewPortSize.x = newWidth;
+		viewPortSize.y = newHeight;
 
 		if (isDebug()) {
-			Gdx.app.log(this.getClass().getSimpleName(),"=============================");
-			Gdx.app.log(this.getClass().getSimpleName(),"scale: " + scale);
-			Gdx.app.log(this.getClass().getSimpleName(),"Width: " + newWidth + ", Height: " + newHeight);
-			Gdx.app.log(this.getClass().getSimpleName(),"=============================");
+			Gdx.app.log(this.getClass().getSimpleName(), "=============================");
+			Gdx.app.log(this.getClass().getSimpleName(), "scale: " + scale);
+			Gdx.app.log(this.getClass().getSimpleName(), "Width: " + newWidth + ", Height: " + newHeight);
+			Gdx.app.log(this.getClass().getSimpleName(), "=============================");
 		}
-		
+
 		backDrop.getViewport().update(width, height, false);
-		
-		//gameStage.getViewport().update(stageSize.w / 2, stageSize.h / 2, false);
+
+		// gameStage.getViewport().update(stageSize.w / 2, stageSize.h / 2, false);
 		gameStage.getViewport().update(width, height, false);
-		
+
 //		Camera cam=gameStage.getCamera();
 //		cam.viewportHeight = newHeight;
 //		cam.viewportWidth = newWidth;
 //		cam.position.set(stageSize.w / 2, stageSize.h / 2, 0);
 //		cam.update();
-		
+
 //		hud.getViewport().update(stageSize.w / 2, stageSize.h / 2, false);
 		hud.getViewport().update(width, height, false);
 //		Camera hudcam=hud.getCamera();
@@ -214,7 +299,7 @@ public class ScreenBase implements Screen {
 //		hudcam.viewportWidth = newWidth;
 //		hudcam.position.set(stageSize.w / 2, stageSize.h / 2, 0);
 //		hudcam.update();
-		
+
 		stageSafeZone.getViewport().update(width, height, false);
 //		stageSafeZone.getViewport().update(stageSize.w / 2, stageSize.h / 2, false);
 //		Camera scam=stageSafeZone.getCamera();
@@ -226,119 +311,36 @@ public class ScreenBase implements Screen {
 	}
 
 	@Override
+	public void resume() {
+		if (isDisposed) {
+			return;
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "Resume: " + getClass().getSimpleName());
+		if (r == null) {
+			r = new ShapeRenderer();
+		}
+	}
+
+	public void setDebug(final boolean debug) {
+		this.debug = debug;
+	}
+
+	protected void setInputProcessor(final InputProcessor ip) {
+		screenInputProcessor = ip;
+	}
+
+	public void setShowFPS(final boolean showFPS) {
+		this.showFPS = showFPS;
+	}
+
+	@Override
 	public void show() {
 		if (isDisposed) {
 			return;
 		}
 		if (isDebug()) {
-			Gdx.app.log(this.getClass().getSimpleName(),"Show: " + getClass().getSimpleName());
+			Gdx.app.log(this.getClass().getSimpleName(), "Show: " + getClass().getSimpleName());
 		}
 		connectInputProcessor();
-	}
-
-	InputProcessor screenInputProcessor=null;
-	
-	@Override
-	public void hide() {
-		if (isDisposed) {
-			return;
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),"Hide: " + getClass().getSimpleName());
-		disconnectInputProcessor();
-	}
-
-	@Override
-	public void pause() {
-		if (isDisposed) {
-			return;
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),"Pause: " + getClass().getSimpleName());
-		ScreenChangeEvent e = new ScreenChangeEvent();
-		e.screen=ScreenList.Paused;
-		NumbersMaze.post(e);
-	}
-
-	@Override
-	public void resume() {
-		if (isDisposed) {
-			return;
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),"Resume: " + getClass().getSimpleName());
-		if (r==null) {
-			r=new ShapeRenderer();
-		}
-	}
-
-	@Override
-	public void dispose() {
-		if (isDisposed) {
-			return;
-		}
-		isDisposed=true;
-		Gdx.app.log(this.getClass().getSimpleName(),"Dispose: " + getClass().getSimpleName());
-		disconnectInputProcessor();
-		
-		gameStage.clear();
-		gameStage.dispose();
-		gameStage = null;
-		
-		stageSafeZone.clear();
-		stageSafeZone.dispose();
-		stageSafeZone = null;
-		
-		backDrop.clear();
-		backDrop.dispose();
-		backDrop = null;
-		
-		assets.clear();
-		assets.dispose();
-		assets = null;
-		
-		if (r!=null) {
-			r.dispose();
-			r=null;
-		}
-	}
-
-	public boolean isDebug() {
-		return debug;
-	}
-
-	public void setDebug(boolean debug) {
-		this.debug = debug;
-	}
-
-	protected void setInputProcessor(InputProcessor ip) {
-		screenInputProcessor=ip;
-	}
-	private void connectInputProcessor() {
-		if (screenInputProcessor == null) {
-			Gdx.input.setInputProcessor(hud);
-		} else {
-			Gdx.input.setInputProcessor(screenInputProcessor);
-		}
-	}
-	
-	private void disconnectInputProcessor() {
-		if (Gdx.input.getInputProcessor() == null) {
-			return;
-		}
-		screenInputProcessor=Gdx.input.getInputProcessor();
-		Gdx.input.setInputProcessor(null);
-	}
-
-	public boolean isShowFPS() {
-		return showFPS;
-	}
-
-	public void setShowFPS(boolean showFPS) {
-		this.showFPS = showFPS;
-	}
-	
-	protected Array<Runnable> screenRunnable = new Array<>();
-	public void postRunnable(Runnable runnable) {
-		synchronized (screenRunnable) {
-			screenRunnable.add(runnable);
-		}
 	}
 }

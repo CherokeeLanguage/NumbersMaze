@@ -38,34 +38,131 @@ import com.cherokeelessons.maze.screen.SinglePlayerMazeScreen;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-
 public class NumbersMaze extends Game {
-	private Effect e=null;
-	
-	public static Preferences getPreferences(){
-		return Gdx.app.getPreferences(NumbersMaze.class.getCanonicalName());
+	public static class OS {
+		public static boolean isWindows = false;
+		public static boolean isMac = false;
+		public static boolean isUnix = false;
+		public static boolean isSolaris = false;
+
+		private static void check() {
+			final String OS = System.getProperty("os.name").toLowerCase();
+			isWindows = OS.indexOf("win") >= 0;
+			isMac = OS.indexOf("mac") >= 0;
+			isUnix = OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0;
+			isSolaris = OS.indexOf("sunos") >= 0;
+		}
+
+		public static boolean isOnAndroidTV() {
+			return Gdx.app.getType().equals(Application.ApplicationType.Android)
+					&& !Gdx.input.isPeripheralAvailable(Input.Peripheral.MultitouchScreen);
+		}
 	}
-	public static Preferences getPreferences(String tag){
-		return Gdx.app.getPreferences(NumbersMaze.class.getCanonicalName()+"."+tag);
+
+	public static class ScreenChangeEvent {
+		public ScreenList screen = ScreenList.MainMenu;
+		final public DataBundle data = new DataBundle();
 	}
+
+	public enum ScreenList {
+		MainMenu, SinglePlayerMazeScreen, Loading, OnePlayer, UltimateScreen, Previous, Paused, SaveGame, LoadGame,
+		UltimateOnePlayer;
+	}
+
 	final private static EventBus b;
-	
+
 	static {
 		b = new EventBus("event bus");
 	}
-	
-	private static EventBus getBus(){
+
+	private static EventBus getBus() {
 		return b;
 	}
-	public static void post(Object event) {
+
+	public static Preferences getPreferences() {
+		return Gdx.app.getPreferences(NumbersMaze.class.getCanonicalName());
+	}
+
+	public static Preferences getPreferences(final String tag) {
+		return Gdx.app.getPreferences(NumbersMaze.class.getCanonicalName() + "." + tag);
+	}
+
+	public static void post(final Object event) {
 		getBus().post(event);
 	}
-	
-//	private NumbersMaze app=null;
-	public Array<Controller> gamepads=new Array<>();
+
+	private Effect e = null;
+
+	// private NumbersMaze app=null;
+	public Array<Controller> gamepads = new Array<>();
+
 	public int textureSize;
+
 	private ControllerListener padWatchDog;
-	
+
+	public String[] songs = new String[0];
+
+	public LoadingScreen loadingScreen;
+
+	public MainMenu mainMenu;
+
+	public SinglePlayerMazeScreen singlePlayerMazeScreen;
+	public SinglePlayerMazeScreen ultimatePlayerMazeScreen;
+	public OnePlayerScreen onePlayer;
+	Array<ScreenList> screenStack = new Array<>();
+	Paused paused = null;
+
+	private SaveLoadScreen saveGameScreen = null;
+
+	private SaveLoadScreen loadGameScreen = null;
+
+	private OnePlayerScreen uOnePlayer;
+
+	@Override
+	public void create() {
+
+		getBus().register(this);
+
+		e = new Effect();
+		getBus().register(e);
+
+		textureSize = getMaxTextureSize();
+		S.init();
+		S.getArg().init(packTextures(textureSize));
+		S.getPar().init(textureSize);
+
+		Gdx.input.setCatchKey(Input.Keys.BACK, true);
+		Gdx.input.setCatchKey(Input.Keys.MENU, true);
+
+		OS.check();
+
+		initGamepads();
+
+		final ScreenChangeEvent e = new ScreenChangeEvent();
+		e.screen = ScreenList.Loading;
+		getBus().post(e);
+
+		Arrow.setRegion(S.getArg().findRegion("arrow1"));
+		Boom.setRegion(S.getArg().findRegion("explosion"));
+		DeathOrb.setAtlas(S.getArg().findRegions("a_fireball", 0, 63, 3));
+
+		Gdx.app.log(this.getClass().getSimpleName(), "Loading level song list");
+		FileHandle plist = Gdx.files.getFileHandle("audio/plist-levels.txt", Files.FileType.Internal);
+		songs = plist.readString().split("\n");
+		for (int ix = 0; ix < songs.length; ix++) {
+			songs[ix] = songs[ix].replace(".ogg", "");
+		}
+		plist = null;
+		final Random x = new Random(0);
+		for (int ix = 0; ix < songs.length; ix++) {
+			final int iy = x.nextInt(songs.length);
+			final String temp = songs[ix];
+			songs[ix] = songs[iy];
+			songs[iy] = temp;
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), songs.length + " songs found.");
+	}
+
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -74,193 +171,134 @@ public class NumbersMaze extends Game {
 		S.dispose();
 	}
 
-	@Override
-	public void create() {
-		
-		getBus().register(this);
-		
-		e=new Effect();
-		getBus().register(e);
-		
-		textureSize = getMaxTextureSize();
-		S.init();
-		S.getArg().init(packTextures(textureSize));
-		S.getPar().init(textureSize);
-		
-		Gdx.input.setCatchKey(Input.Keys.BACK, true);
-		Gdx.input.setCatchKey(Input.Keys.MENU, true);
-		
-		OS.check();
-		
-		initGamepads();
-		
-		ScreenChangeEvent e = new ScreenChangeEvent();
-		e.screen=ScreenList.Loading;
-		getBus().post(e);
-		
-		Arrow.setRegion(S.getArg().findRegion("arrow1"));
-		Boom.setRegion(S.getArg().findRegion("explosion"));
-		DeathOrb.setAtlas(S.getArg().findRegions("a_fireball", 0, 63, 3));
-
-		Gdx.app.log(this.getClass().getSimpleName(),"Loading level song list");
-		FileHandle plist = Gdx.files.getFileHandle("audio/plist-levels.txt", Files.FileType.Internal);
-		songs = plist.readString().split("\n");
-		for (int ix=0; ix<songs.length; ix++) {
-			songs[ix] = songs[ix].replace(".ogg", "");
-		}
-		plist=null;
-		Random x = new Random(0);
-		for (int ix=0; ix<songs.length; ix++) {
-			int iy=x.nextInt(songs.length);
-			String temp=songs[ix];
-			songs[ix]=songs[iy];
-			songs[iy]=temp;
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),songs.length+" songs found.");
-	}
-
-	private TextureAtlas packTextures(int packSize) {
-
-		TextureAtlas newAtlas=null;
-		
-		Gdx.app.log(this.getClass().getSimpleName(),"PACKING TEXTURES");
-		final PixmapPacker packer = new PixmapPacker(packSize, packSize,
-				Format.RGBA8888, 1, true);
-
-		ArrayList<String> imgList = new ArrayList<>();
-		imgList.addAll(Arrays.asList(Gdx.files.internal("720p/plist.txt").readString("UTF-8").split("\n")));
-		Gdx.app.log(this.getClass().getSimpleName(),"Read " + imgList.size() + " plist entries.");
-		for (int ix = 0; ix < imgList.size(); ix++) {
-			String img = imgList.get(ix);
-			if (img.trim().length() < 1) {
-				continue;
-			}
-			FileHandle internal = Gdx.files.internal(img);
-			Pixmap p = new Pixmap(internal);
-			packer.pack(internal.nameWithoutExtension(), p);
-			p.dispose();
-		}
-		newAtlas = packer.generateTextureAtlas(TextureFilter.Linear,
-				TextureFilter.Linear, false);
-		return newAtlas;
-	}
-
-	private int getMaxTextureSize() {
-		IntBuffer buf = BufferUtils.newIntBuffer(16);
-		Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buf);
-		int size=buf.get();
-		if (size>2048) {
-			size=2048;
-		}
-		Gdx.app.log("glinfo", "Runtime texture pack size = " + textureSize);
-		return size;
-	}
-	
-	private void initGamepads() {
-		padWatchDog=new PlayerInput(){
-			@Override
-			public void disconnected(Controller controller) {
-				for (int ix=0; ix<gamepads.size; ix++) {
-					if (gamepads.get(ix).equals(controller)) {
-						gamepads.set(ix, null);
-						Gdx.app.log(this.getClass().getSimpleName(),"LOST PLAYER INPUT: "+ix);
-						break;
-					}
-				}
-			}
-			@Override
-			public void connected(Controller controller) {
-				for (int ix=0; ix<gamepads.size; ix++) {
-					if (gamepads.get(ix)==null) {
-						gamepads.set(ix, controller);
-						Gdx.app.log(this.getClass().getSimpleName(),"REPLACED PLAYER INPUT: "+ix);
-						return;
-					}
-					if (gamepads.get(ix).equals(controller)) {
-						Gdx.app.log(this.getClass().getSimpleName(),"DUPLICATE PLAYER INPUT: "+ix);
-						return;
-					}
-				}
-				Gdx.app.log(this.getClass().getSimpleName(),"NEW PLAYER INPUT: "+gamepads.size);
-				gamepads.add(controller);
-			}
-		};
-		Controllers.addListener(padWatchDog);
-		
-		Array<Controller> pads = Controllers.getControllers();
-		for (Controller controller : pads) {
-			gamepads.add(controller);
-			Gdx.app.log(this.getClass().getSimpleName(),"Found input device: "+controller.getName());
-		}
-	}
-
-	public String[] songs=new String[0];
-	
-	public LoadingScreen loadingScreen;
-	public MainMenu mainMenu;
-	public SinglePlayerMazeScreen singlePlayerMazeScreen;
-	public SinglePlayerMazeScreen ultimatePlayerMazeScreen;
-	public OnePlayerScreen onePlayer;
-	
-	public static enum ScreenList {
-		MainMenu, SinglePlayerMazeScreen, Loading, OnePlayer, UltimateScreen, Previous, Paused, SaveGame, LoadGame, UltimateOnePlayer;
-	}
-	
-	Array<ScreenList> screenStack=new Array<>();
-	
-	public ScreenList getActiveScreen(){
-		if (screenStack.size<1) {
+	public ScreenList getActiveScreen() {
+		if (screenStack.size < 1) {
 			return null;
 		}
 		return screenStack.peek();
 	}
-	public void popUntilScreenStack(ScreenList until) {
-		 while (screenStack.size>0){
-			 ScreenList lastScreen = screenStack.pop();
-			 if (lastScreen.equals(until)){
-				 break;
-			 }
-		 }
+
+	private int getMaxTextureSize() {
+		final IntBuffer buf = BufferUtils.newIntBuffer(16);
+		Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buf);
+		int size = buf.get();
+		if (size > 2048) {
+			size = 2048;
+		}
+		Gdx.app.log("glinfo", "Runtime texture pack size = " + textureSize);
+		return size;
 	}
-	public ScreenList popScreenStack(ScreenList onlyPopIfThis) {
-		 while (screenStack.size>0){
-			 if (!screenStack.peek().equals(onlyPopIfThis)){
-				 break;
-			 }
-			 screenStack.pop();
-		 }
-		 return screenStack.peek();
+
+	private void initGamepads() {
+		padWatchDog = new PlayerInput() {
+			@Override
+			public void connected(final Controller controller) {
+				for (int ix = 0; ix < gamepads.size; ix++) {
+					if (gamepads.get(ix) == null) {
+						gamepads.set(ix, controller);
+						Gdx.app.log(this.getClass().getSimpleName(), "REPLACED PLAYER INPUT: " + ix);
+						return;
+					}
+					if (gamepads.get(ix).equals(controller)) {
+						Gdx.app.log(this.getClass().getSimpleName(), "DUPLICATE PLAYER INPUT: " + ix);
+						return;
+					}
+				}
+				Gdx.app.log(this.getClass().getSimpleName(), "NEW PLAYER INPUT: " + gamepads.size);
+				gamepads.add(controller);
+			}
+
+			@Override
+			public void disconnected(final Controller controller) {
+				for (int ix = 0; ix < gamepads.size; ix++) {
+					if (gamepads.get(ix).equals(controller)) {
+						gamepads.set(ix, null);
+						Gdx.app.log(this.getClass().getSimpleName(), "LOST PLAYER INPUT: " + ix);
+						break;
+					}
+				}
+			}
+		};
+		Controllers.addListener(padWatchDog);
+
+		final Array<Controller> pads = Controllers.getControllers();
+		for (final Controller controller : pads) {
+			gamepads.add(controller);
+			Gdx.app.log(this.getClass().getSimpleName(), "Found input device: " + controller.getName());
+		}
 	}
-	Paused paused=null;
-	private SaveLoadScreen saveGameScreen=null;
-	private SaveLoadScreen loadGameScreen=null;
-	private OnePlayerScreen uOnePlayer;
-	public static class ScreenChangeEvent {
-		public ScreenList screen=ScreenList.MainMenu;
-		final public DataBundle data = new DataBundle();
+
+	private TextureAtlas packTextures(final int packSize) {
+
+		TextureAtlas newAtlas = null;
+
+		Gdx.app.log(this.getClass().getSimpleName(), "PACKING TEXTURES");
+		final PixmapPacker packer = new PixmapPacker(packSize, packSize, Format.RGBA8888, 1, true);
+
+		final ArrayList<String> imgList = new ArrayList<>();
+		imgList.addAll(Arrays.asList(Gdx.files.internal("720p/plist.txt").readString("UTF-8").split("\n")));
+		Gdx.app.log(this.getClass().getSimpleName(), "Read " + imgList.size() + " plist entries.");
+		for (final String img : imgList) {
+			if (img.trim().length() < 1) {
+				continue;
+			}
+			final FileHandle internal = Gdx.files.internal(img);
+			final Pixmap p = new Pixmap(internal);
+			packer.pack(internal.nameWithoutExtension(), p);
+			p.dispose();
+		}
+		newAtlas = packer.generateTextureAtlas(TextureFilter.Linear, TextureFilter.Linear, false);
+		return newAtlas;
 	}
+
+	private ScreenList popScreenStack() {
+		if (screenStack.size > 0) {
+			return screenStack.pop();
+		}
+		return null;
+	}
+
+	public ScreenList popScreenStack(final ScreenList onlyPopIfThis) {
+		while (screenStack.size > 0) {
+			if (!screenStack.peek().equals(onlyPopIfThis)) {
+				break;
+			}
+			screenStack.pop();
+		}
+		return screenStack.peek();
+	}
+
+	public void popUntilScreenStack(final ScreenList until) {
+		while (screenStack.size > 0) {
+			final ScreenList lastScreen = screenStack.pop();
+			if (lastScreen.equals(until)) {
+				break;
+			}
+		}
+	}
+
 	@Subscribe
-	public void switchToHandler(ScreenChangeEvent event) {
-		Gdx.app.log("switchToHandler", event.screen.name()+" "+event.data.toString());
+	public void switchToHandler(final ScreenChangeEvent event) {
+		Gdx.app.log("switchToHandler", event.screen.name() + " " + event.data.toString());
 		switch (event.screen) {
 		case Loading:
-			if (loadingScreen==null) {
-				loadingScreen=new LoadingScreen(this);
+			if (loadingScreen == null) {
+				loadingScreen = new LoadingScreen(this);
 			}
 			screenStack.add(ScreenList.Loading);
 			setScreen(loadingScreen);
 			break;
 		case LoadGame:
-			if (loadGameScreen!=null) {
+			if (loadGameScreen != null) {
 				loadGameScreen.dispose();
 			}
-			loadGameScreen=new SaveLoadScreen(this, SaveLoadMode.Load, event.data);
+			loadGameScreen = new SaveLoadScreen(this, SaveLoadMode.Load, event.data);
 			setScreen(loadGameScreen);
 			screenStack.add(ScreenList.LoadGame);
 			break;
 		case MainMenu:
-			if (mainMenu==null) {
-				mainMenu=new MainMenu(this);
+			if (mainMenu == null) {
+				mainMenu = new MainMenu(this);
 			}
 			popUntilScreenStack(ScreenList.MainMenu);
 			screenStack.add(ScreenList.MainMenu);
@@ -268,12 +306,12 @@ public class NumbersMaze extends Game {
 			break;
 		case OnePlayer:
 			if (!event.data.getBoolean("paused")) {
-				if (onePlayer!=null) {
+				if (onePlayer != null) {
 					onePlayer.dispose();
-					onePlayer=null;
+					onePlayer = null;
 				}
 			}
-			if (onePlayer==null) {
+			if (onePlayer == null) {
 				onePlayer = new OnePlayerScreen(this, event.data);
 			}
 			screenStack.add(ScreenList.OnePlayer);
@@ -292,42 +330,42 @@ public class NumbersMaze extends Game {
 		case Previous:
 			popScreenStack();
 			popScreenStack(ScreenList.Paused);
-			ScreenChangeEvent e = new ScreenChangeEvent();
-			e.screen=getActiveScreen();
-			if (e.screen==null) {
-				e.screen=ScreenList.MainMenu;
+			final ScreenChangeEvent e = new ScreenChangeEvent();
+			e.screen = getActiveScreen();
+			if (e.screen == null) {
+				e.screen = ScreenList.MainMenu;
 			}
 			getBus().post(e);
 			break;
 		case SaveGame:
-			if (saveGameScreen!=null) {
+			if (saveGameScreen != null) {
 				saveGameScreen.dispose();
 			}
-			saveGameScreen=new SaveLoadScreen(this, SaveLoadMode.Save, event.data);
+			saveGameScreen = new SaveLoadScreen(this, SaveLoadMode.Save, event.data);
 			setScreen(saveGameScreen);
 			screenStack.add(ScreenList.SaveGame);
 			break;
 		case SinglePlayerMazeScreen:
 			if (!event.data.getBoolean("paused")) {
-				if (singlePlayerMazeScreen!=null) {
+				if (singlePlayerMazeScreen != null) {
 					singlePlayerMazeScreen.dispose();
-					singlePlayerMazeScreen=null;
+					singlePlayerMazeScreen = null;
 				}
 			}
-			if (singlePlayerMazeScreen==null) {
-				singlePlayerMazeScreen=new SinglePlayerMazeScreen(this, event.data);
+			if (singlePlayerMazeScreen == null) {
+				singlePlayerMazeScreen = new SinglePlayerMazeScreen(this, event.data);
 			}
 			screenStack.add(ScreenList.SinglePlayerMazeScreen);
 			setScreen(singlePlayerMazeScreen);
 			break;
 		case UltimateScreen:
 			if (!event.data.getBoolean("paused")) {
-				if (uOnePlayer!=null) {
+				if (uOnePlayer != null) {
 					uOnePlayer.dispose();
-					uOnePlayer=null;
+					uOnePlayer = null;
 				}
 			}
-			if (uOnePlayer==null) {
+			if (uOnePlayer == null) {
 //				DataBundle data=new DataBundle();
 //				data.putInteger("level", 50);
 //				data.putInteger("score", 0);
@@ -341,33 +379,5 @@ public class NumbersMaze extends Game {
 			break;
 		}
 	}
-	private ScreenList popScreenStack() {
-		if (screenStack.size > 0) {
-			return screenStack.pop();
-		}
-		return null;
-	}
-	
-	public static class OS {
-		private static void check() {
-			String OS = System.getProperty("os.name").toLowerCase();
-			isWindows=OS.indexOf("win") >= 0;
-			isMac=OS.indexOf("mac") >= 0;
-			isUnix=OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0;
-			isSolaris=OS.indexOf("sunos") >= 0;
-		}
-		public static boolean isWindows=false;
-		public static boolean isMac=false;
-		public static boolean isUnix=false;
-		public static boolean isSolaris=false;
-		
-		public static boolean isOnAndroidTV() {
-		    return Gdx.app.getType().equals(Application.ApplicationType.Android) &&
-		            !Gdx.input.isPeripheralAvailable(Input.Peripheral.MultitouchScreen);
-		}
-	}
-	
 
 }
-
-

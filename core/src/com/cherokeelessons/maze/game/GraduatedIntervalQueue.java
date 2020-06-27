@@ -11,108 +11,65 @@ import com.badlogic.gdx.utils.IntArray;
 
 public class GraduatedIntervalQueue {
 
-	public boolean isDebug() {
-		return debug;
-	}
+	public static class Point {
 
-	public void setDebug(boolean debug) {
-		this.debug = debug;
+		protected int x, y;
+
+		public Point() {
+
+			setPoint(0, 0);
+
+		}
+
+		public Point(final int coordx, final int coordy) {
+			setPoint(coordx, coordy);
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public int getY() {
+			return y;
+		}
+
+		public void setPoint(final int coordx, final int coordy) {
+			x = coordx;
+			y = coordy;
+		}
+
+		public String toPrint() {
+			return "[" + x + "," + y + "]";
+		}
+
 	}
 
 	private boolean debug = true;
 
 	private boolean doubleMode = false;
 
-	public boolean isDoubleMode() {
-		return doubleMode;
-	}
-
-	public void setDoubleMode(boolean doubleMode) {
-		this.doubleMode = doubleMode;
-	}
-
-	@SuppressWarnings("unused")
-	private void dumpList(ArrayList<Integer> listToDump) {
-		int ix, len;
-		if (!debug) {
-			return;
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),"===================================");
-		for (ix = 0, len = listToDump.size(); ix < len; ix++) {
-			Gdx.app.log(this.getClass().getSimpleName(),ix + ": " + listToDump.get(ix));
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),"===================================");
-		Gdx.app.log(this.getClass().getSimpleName(),"");
-	}
-
 	private ArrayList<Integer> startingEntries;
+
 	private ArrayList<Integer> intervalQueue;
 
-	public ArrayList<Integer> getIntervalQueue() {
-		return intervalQueue;
-	}
+	private ArrayList<Integer> bounderiesNameList;
 
-	public Integer getEntry(int ix) {
-		if (intervalQueue.size() > ix && ix >= 0) {
-			return intervalQueue.get(ix);
-		}
-		return 0;
-	}
+	private HashMap<Integer, Integer> bounderiesByPosition;
+
+	private HashMap<Integer, Integer> bounderiesByName;
+	private ArrayList<Point> levelMarks;
+
+	private boolean briefList = false;
+
+	private boolean shortList = false;
+
+	private HashMap<String, String> syllabaryFor = null;
 
 	public GraduatedIntervalQueue() {
 		super();
 	}
 
-	public void load(IntArray _startingEntries) {
-		final ArrayList<Integer> tmp = new ArrayList<>(_startingEntries.size);
-		for (int i: _startingEntries.items) {
-			tmp.add(i);
-		}
-		load(tmp);
-	}
-	
-	public void load(ArrayList<Integer> _startingEntries) {
-		startingEntries = new ArrayList<>();
-		bounderiesNameList = new ArrayList<>();
-		bounderiesByName = new HashMap<>();
-		bounderiesByPosition = new HashMap<>();
-		startingEntries.addAll(_startingEntries);// dedupeAndSort(_startingEntries);
-		intervalQueue = getQueue(startingEntries);
-		locateBounderies();
-		calculateLevelStarts(18);
-	}
-
-	@SuppressWarnings("unused")
-	private ArrayList<Integer> dedupeAndSort(ArrayList<Integer> list) {
-		ArrayList<Integer> newList;
-		newList = new ArrayList<>();
-		newList = new ArrayList<>(new HashSet<>(list));
-		Collections.sort(newList);
-		return newList;
-	}
-
-	private ArrayList<Integer> bounderiesNameList;
-	private HashMap<Integer, Integer> bounderiesByPosition;
-	private HashMap<Integer, Integer> bounderiesByName;
-
-	private void locateBounderies() {
-		int ix, len;
-		int item;
-
-		for (ix = 0, len = intervalQueue.size(); ix < len; ix++) {
-			item = intervalQueue.get(ix);
-			if (bounderiesNameList.contains(item)) {
-				continue;
-			}
-			bounderiesNameList.add(item);
-			bounderiesByName.put(item, ix);
-			bounderiesByPosition.put(ix, item);
-		}
-	}
-
-	private ArrayList<Point> levelMarks;
-
-	public void calculateLevelStarts(int levels) {
+	public void calculateLevelStarts(final int levels) {
 		int startingPoint;
 		int item;
 		int listSize = 0;
@@ -124,8 +81,7 @@ public class GraduatedIntervalQueue {
 
 		listSize = bounderiesNameList.size();
 		for (ix = 0; ix < levels; ix++) {
-			index = (int) Math.ceil(listSize
-					* ((float) ix / (float) levels));
+			index = (int) Math.ceil(listSize * ((float) ix / (float) levels));
 			if (index >= bounderiesNameList.size()) {
 				continue;
 			}
@@ -140,88 +96,61 @@ public class GraduatedIntervalQueue {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private ArrayList<Integer> dedupeAndSort(final ArrayList<Integer> list) {
+		ArrayList<Integer> newList;
+		newList = new ArrayList<>();
+		newList = new ArrayList<>(new HashSet<>(list));
+		Collections.sort(newList);
+		return newList;
+	}
+
+	@SuppressWarnings("unused")
+	private void dumpList(final ArrayList<Integer> listToDump) {
+		int ix, len;
+		if (!debug) {
+			return;
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "===================================");
+		for (ix = 0, len = listToDump.size(); ix < len; ix++) {
+			Gdx.app.log(this.getClass().getSimpleName(), ix + ": " + listToDump.get(ix));
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "===================================");
+		Gdx.app.log(this.getClass().getSimpleName(), "");
+	}
+
+	public Integer getEntry(final int ix) {
+		if (intervalQueue.size() > ix && ix >= 0) {
+			return intervalQueue.get(ix);
+		}
+		return 0;
+	}
+
+	public ArrayList<Integer> getIntervalQueue() {
+		return intervalQueue;
+	}
+
 	int getLevelCount() {
 		return levelMarks.size();
 	}
 
-	int getLevelStartPosition(int level) {
-		return levelMarks.get(level).x;
-	}
-
-	int getLevelEndPosition(int level) {
+	int getLevelEndPosition(final int level) {
 		return levelMarks.get(level).y;
 	}
 
-	int getLevelStartName(int level) {
+	int getLevelStartName(final int level) {
 		int position;
 		position = getLevelStartPosition(level);
 		return bounderiesByPosition.get(position);
 	}
 
-	public void removeGaps(ArrayList<Integer> queue) {
-		int ix = 0, repeat;
-		ArrayList<Integer> vx1 = null;
-		ArrayList<Integer> vx2 = null;
-		boolean hasDupes = true;
-		int prev = 0;
-		int current = 0;
-
-		vx1 = new ArrayList<>();
-		vx2 = new ArrayList<>();
-
-		/**
-		 * scan for and try and prevent "repeats"
-		 */
-		for (repeat = 0; hasDupes && repeat < 10; repeat++) {
-			prev = 0;
-			vx1.clear();
-			vx2.clear();
-			hasDupes = false;
-			for (ix = 0; ix < queue.size(); ix++) {
-				if (queue.get(ix) == 0) {
-					continue;
-				}
-				current = queue.get(ix);
-				if (current != prev) {
-					vx1.add(current);
-					prev = current;
-				} else {
-					vx2.add(current);
-					hasDupes = true;
-				}
-			}
-			queue.clear();
-			queue.addAll(vx1);
-			queue.addAll(vx2);
-		}
-
-		vx1.clear();
-		vx2.clear();
-	}
-
-	private boolean briefList = false;
-
-	public boolean isBriefList() {
-		return briefList;
-	}
-
-	public void setBriefList(boolean briefList) {
-		this.briefList = briefList;
-	}
-
-	private boolean shortList = false;
-
-	public boolean isShortList() {
-		return shortList;
-	}
-
-	public void setShortList(boolean shortList) {
-		this.shortList = shortList;
+	int getLevelStartPosition(final int level) {
+		return levelMarks.get(level).x;
 	}
 
 	/**
 	 * based on getOffsetsReal from 'translations.php'
-	 * 
+	 *
 	 * @return ArrayList<Integer>
 	 */
 	private ArrayList<Integer> getOffsets() {
@@ -251,12 +180,14 @@ public class GraduatedIntervalQueue {
 
 	/**
 	 * based on getOffsetsReal from 'translations.php'
-	 * 
+	 *
 	 * @return ArrayList<Integer>
 	 */
 	private ArrayList<Integer> getOffsetsDoubled() {
 		ArrayList<Integer> o1;
-		int ip, depth = 6, stagger = 4, ix;
+		int ip;
+		final int depth = 6, stagger = 4;
+		int ix;
 
 		o1 = new ArrayList<>();
 
@@ -268,7 +199,7 @@ public class GraduatedIntervalQueue {
 		return o1;
 	}
 
-	private ArrayList<Integer> getQueue(ArrayList<Integer> startingEntries2) {
+	private ArrayList<Integer> getQueue(final ArrayList<Integer> startingEntries2) {
 		int ix, iy, ia;
 		ArrayList<Integer> offsets;
 		ArrayList<Integer> newQueue = null;
@@ -311,59 +242,62 @@ public class GraduatedIntervalQueue {
 		return newQueue;
 	}
 
-	private HashMap<String, String> syllabaryFor = null;
-
 	public HashMap<String, String> getSyllabaryFor() {
 		return syllabaryFor;
 	}
 
-	public void setSyllabaryFor(HashMap<String, String> syllabary) {
-		syllabaryFor = syllabary;
+	public boolean isBriefList() {
+		return briefList;
 	}
 
-	@SuppressWarnings("unused")
-	private void orderBySizeAscCustom(ArrayList<String> samples) {
-		if (syllabaryFor == null) {
-			orderBySizeAsc(samples);
-			return;
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public boolean isDoubleMode() {
+		return doubleMode;
+	}
+
+	public boolean isShortList() {
+		return shortList;
+	}
+
+	public void load(final ArrayList<Integer> _startingEntries) {
+		startingEntries = new ArrayList<>();
+		bounderiesNameList = new ArrayList<>();
+		bounderiesByName = new HashMap<>();
+		bounderiesByPosition = new HashMap<>();
+		startingEntries.addAll(_startingEntries);// dedupeAndSort(_startingEntries);
+		intervalQueue = getQueue(startingEntries);
+		locateBounderies();
+		calculateLevelStarts(18);
+	}
+
+	public void load(final IntArray _startingEntries) {
+		final ArrayList<Integer> tmp = new ArrayList<>(_startingEntries.size);
+		for (final int i : _startingEntries.items) {
+			tmp.add(i);
 		}
-		Collections.sort(samples, new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				if (syllabaryFor.containsKey(o1)) {
-					o1 = syllabaryFor.get(o1);
-				}
-				if (syllabaryFor.containsKey(o2)) {
-					o2 = syllabaryFor.get(o2);
-				}
-				if (o1.length() < o2.length()) {
-					return -1;
-				}
-				if (o1.length() > o2.length()) {
-					return 1;
-				}
-				return o1.compareTo(o2);
-			}
-		});
+		load(tmp);
 	}
 
-	private void orderBySizeAsc(ArrayList<String> samples) {
-		Collections.sort(samples, new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				if (o1.length() < o2.length()) {
-					return -1;
-				}
-				if (o1.length() > o2.length()) {
-					return 1;
-				}
-				return o1.compareTo(o2);
+	private void locateBounderies() {
+		int ix, len;
+		int item;
+
+		for (ix = 0, len = intervalQueue.size(); ix < len; ix++) {
+			item = intervalQueue.get(ix);
+			if (bounderiesNameList.contains(item)) {
+				continue;
 			}
-		});
+			bounderiesNameList.add(item);
+			bounderiesByName.put(item, ix);
+			bounderiesByPosition.put(ix, item);
+		}
 	}
 
 	@SuppressWarnings("unused")
-	private void mixUpSamples(ArrayList<Integer> samples) {
+	private void mixUpSamples(final ArrayList<Integer> samples) {
 		ArrayList<Integer> mixedUp;
 		ArrayList<Integer> offsets;
 
@@ -394,37 +328,106 @@ public class GraduatedIntervalQueue {
 		}
 	}
 
-	public static class Point {
+	private void orderBySizeAsc(final ArrayList<String> samples) {
+		Collections.sort(samples, new Comparator<String>() {
+			@Override
+			public int compare(final String o1, final String o2) {
+				if (o1.length() < o2.length()) {
+					return -1;
+				}
+				if (o1.length() > o2.length()) {
+					return 1;
+				}
+				return o1.compareTo(o2);
+			}
+		});
+	}
 
-		protected int x, y;
+	@SuppressWarnings("unused")
+	private void orderBySizeAscCustom(final ArrayList<String> samples) {
+		if (syllabaryFor == null) {
+			orderBySizeAsc(samples);
+			return;
+		}
+		Collections.sort(samples, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				if (syllabaryFor.containsKey(o1)) {
+					o1 = syllabaryFor.get(o1);
+				}
+				if (syllabaryFor.containsKey(o2)) {
+					o2 = syllabaryFor.get(o2);
+				}
+				if (o1.length() < o2.length()) {
+					return -1;
+				}
+				if (o1.length() > o2.length()) {
+					return 1;
+				}
+				return o1.compareTo(o2);
+			}
+		});
+	}
 
-		public Point() {
+	public void removeGaps(final ArrayList<Integer> queue) {
+		int ix = 0, repeat;
+		ArrayList<Integer> vx1 = null;
+		ArrayList<Integer> vx2 = null;
+		boolean hasDupes = true;
+		int prev = 0;
+		int current = 0;
 
-			setPoint(0, 0);
+		vx1 = new ArrayList<>();
+		vx2 = new ArrayList<>();
 
+		/**
+		 * scan for and try and prevent "repeats"
+		 */
+		for (repeat = 0; hasDupes && repeat < 10; repeat++) {
+			prev = 0;
+			vx1.clear();
+			vx2.clear();
+			hasDupes = false;
+			for (ix = 0; ix < queue.size(); ix++) {
+				if (queue.get(ix) == 0) {
+					continue;
+				}
+				current = queue.get(ix);
+				if (current != prev) {
+					vx1.add(current);
+					prev = current;
+				} else {
+					vx2.add(current);
+					hasDupes = true;
+				}
+			}
+			queue.clear();
+			queue.addAll(vx1);
+			queue.addAll(vx2);
 		}
 
-		public Point(int coordx, int coordy) {
-			setPoint(coordx, coordy);
-		}
+		vx1.clear();
+		vx2.clear();
+	}
 
-		public void setPoint(int coordx, int coordy) {
-			x = coordx;
-			y = coordy;
-		}
+	public void setBriefList(final boolean briefList) {
+		this.briefList = briefList;
+	}
 
-		public int getX() {
-			return x;
-		}
+	public void setDebug(final boolean debug) {
+		this.debug = debug;
+	}
 
-		public int getY() {
-			return y;
-		}
+	public void setDoubleMode(final boolean doubleMode) {
+		this.doubleMode = doubleMode;
+	}
 
-		public String toPrint() {
-			return "[" + x + "," + y + "]";
-		}
+	public void setShortList(final boolean shortList) {
+		this.shortList = shortList;
+	}
 
+	public void setSyllabaryFor(final HashMap<String, String> syllabary) {
+		syllabaryFor = syllabary;
 	}
 
 }

@@ -13,34 +13,33 @@ import com.badlogic.gdx.graphics.g2d.PixmapPacker;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 
 public class PlayerAtlasRegion {
-	public TextureAtlas playerAtlas=null;
-	public void init(int packSize) {
-		Gdx.app.log(this.getClass().getSimpleName(),"PACKING PLAYER TEXTURES");
-		final PixmapPacker packer = new PixmapPacker(packSize, packSize,
-				Format.RGBA8888, 1, true);
+	public TextureAtlas playerAtlas = null;
 
-		String plist_name = "player-64px/plist.txt";
-		FileHandle plist = Gdx.files.internal(plist_name);
-		String list = plist.readString();
-		ArrayList<String> imgList = new ArrayList<>();
+	public void dispose() {
+		playerAtlas.dispose();
+		playerAtlas = null;
+	}
+
+	public void init(final int packSize) {
+		Gdx.app.log(this.getClass().getSimpleName(), "PACKING PLAYER TEXTURES");
+		final PixmapPacker packer = new PixmapPacker(packSize, packSize, Format.RGBA8888, 1, true);
+
+		final String plist_name = "player-64px/plist.txt";
+		final FileHandle plist = Gdx.files.internal(plist_name);
+		final String list = plist.readString();
+		final ArrayList<String> imgList = new ArrayList<>();
 		imgList.addAll(Arrays.asList(list.split("\n")));
-		Gdx.app.log(this.getClass().getSimpleName(),"Read player " + imgList.size() + " plist entries.");
-		for (int ix = 0; ix < imgList.size(); ix++) {
-			String img = imgList.get(ix);
+		Gdx.app.log(this.getClass().getSimpleName(), "Read player " + imgList.size() + " plist entries.");
+		for (final String img : imgList) {
 			if (img.trim().length() < 1) {
 				continue;
 			}
-			File f = new File(img);
-			Pixmap p = new Pixmap(Gdx.files.internal(img));
+			final File f = new File(img);
+			final Pixmap p = new Pixmap(Gdx.files.internal(img));
 			packer.pack(f.getName().replace(".png", ""), p);
 			p.dispose();
 		}
-		TextureAtlas atlas = packer.generateTextureAtlas(TextureFilter.Linear,
-				TextureFilter.Linear, false);
-		playerAtlas=atlas;
-	}
-	public void dispose(){
-		playerAtlas.dispose();
-		playerAtlas=null;
+		final TextureAtlas atlas = packer.generateTextureAtlas(TextureFilter.Linear, TextureFilter.Linear, false);
+		playerAtlas = atlas;
 	}
 }

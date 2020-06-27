@@ -13,10 +13,16 @@ public class Font {
 	public enum Face {
 		CherokeeHandone, Digohweli;
 	}
-	public Font(){
+
+	private String myCharSet;
+	private final FreeTypeFontGenerator ttfgen;
+	public HashMap<String, BitmapFont> fontCache = new HashMap<>();
+
+	public Font() {
 		this(Face.Digohweli);
 	}
-	public Font(Face face) {
+
+	public Font(final Face face) {
 		FileHandle ttfFile;
 		fontCache.clear();
 		switch (face) {
@@ -30,44 +36,44 @@ public class Font {
 		}
 
 		ttfgen = new FreeTypeFontGenerator(ttfFile);
-		StringBuilder c=new StringBuilder();
+		final StringBuilder c = new StringBuilder();
 		c.append(FreeTypeFontGenerator.DEFAULT_CHARS);
-		for (char chr = 'Ꭰ'; chr<= 'Ᏼ'; chr++) {
+		for (char chr = 'Ꭰ'; chr <= 'Ᏼ'; chr++) {
 			c.append(chr);
 		}
-		myCharSet=c.toString();
+		myCharSet = c.toString();
 	}
-	private String myCharSet;
-	private FreeTypeFontGenerator ttfgen;
-	public HashMap<String, BitmapFont> fontCache = new HashMap<>();
-	public BitmapFont getFont(int size) {
+
+	public void dispose() {
+		for (final BitmapFont f : fontCache.values()) {
+			f.dispose();
+		}
+		fontCache.clear();
+		ttfgen.dispose();
+		myCharSet = null;
+	}
+
+	public BitmapFont getFont(final int size) {
 		return getFont(size, false);
 	}
-	public BitmapFont getFont(int size, boolean fixedNumbers) {
-		String fontKey=size+"|"+fixedNumbers;
-		BitmapFont font=fontCache.get(fontKey);
-		if (font!=null) {
+
+	public BitmapFont getFont(final int size, final boolean fixedNumbers) {
+		final String fontKey = size + "|" + fixedNumbers;
+		BitmapFont font = fontCache.get(fontKey);
+		if (font != null) {
 			return font;
 		}
-		FreeTypeFontParameter parameter=new FreeTypeFontParameter();
-		parameter.size=size;
-		parameter.characters=myCharSet;
-		parameter.incremental=false;
+		final FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+		parameter.size = size;
+		parameter.characters = myCharSet;
+		parameter.incremental = false;
 		font = ttfgen.generateFont(parameter);
-		//font = ttfgen.generateFont(size, myCharSet, false);
+		// font = ttfgen.generateFont(size, myCharSet, false);
 		if (fixedNumbers) {
 			font.setFixedWidthGlyphs("0123456789");
 		}
 		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		fontCache.put(fontKey, font);
 		return font;
-	}
-	public void dispose() {
-		for(BitmapFont f: fontCache.values()) {
-			f.dispose();
-		}
-		fontCache.clear();
-		ttfgen.dispose();
-		myCharSet=null;
 	}
 }

@@ -72,65 +72,18 @@ import com.cherokeelessons.maze.object.Xbox;
 
 public class SinglePlayerMazeScreen extends ScreenBase {
 
-	private Array<Integer> challengeList = new Array<>();
+	static final float WORLD_TO_BOX = 20f;
+	static final float BOX_TO_WORLD = 1f / WORLD_TO_BOX;
+
+	private final Array<Integer> challengeList = new Array<>();
+
 	private int challengeTotalValue = 0;
 
 	final int challengeSplit = 6;
 
-	private void calculateChallengeList(int level) {
-		level--;
-		int challengeSet = level / challengeSplit + 1;
-		int subSet = level % challengeSplit;
-		int range = 7;
-		int start = (challengeSet - 1) * range + 1;
-		int end = start + range;
-
-		IntArray seed = new IntArray();
-		for (int ix = start; ix < end; ix++) {
-			seed.add(ix);
-		}
-		if (start > range) {
-			for (int ix = start - range; ix < end - range; ix++) {
-				seed.add(ix);
-			}
-		} else {
-			for (int ix = start; ix < end; ix++) {
-				seed.add(ix);
-			}
-		}
-		GraduatedIntervalQueue giq = new GraduatedIntervalQueue();
-		giq.setShortList(true);
-		giq.load(seed);
-		challengeList.clear();
-		ArrayList<Integer> list = giq.getIntervalQueue();
-		Gdx.app.log(this.getClass().getSimpleName(), "MASTER CHALLENGE LIST: " + list.size() + " := " + list);
-		int split = list.size() / challengeSplit;
-		int setStart = split * subSet;
-		int nextSet = split * (subSet + 1);
-		for (int ix = setStart; ix < nextSet; ix++) {
-			challengeList.add(list.get(ix));
-		}
-		Gdx.app.log(this.getClass().getSimpleName(),
-				"LEVEL CHALLENGE LIST: " + challengeList.size + " := " + challengeList);
-		challengeTotalValue = 0;
-		for (Integer i : challengeList) {
-			challengeTotalValue += i;
-		}
-	}
-
-	private int getMaxChallenge() {
-		int m = 0;
-		for (Integer i : challengeList) {
-			if (i > m) {
-				m = i;
-			}
-		}
-		return m;
-	}
-
 	NumbersMaze app;
 	Group tiles;
-	private Array<Controller> joylist;
+	private final Array<Controller> joylist;
 	private Player player1;
 	private Entity thePortal;
 	float offsetX = 0;
@@ -139,40 +92,108 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 	private Label timeLeft = null;
 	private long lastTimeLeft = 0;
-	private Camera gameStage_camera;
-
-	private int getSecondsLeft() {
-		long remainingTime = timelimit - (System.currentTimeMillis() - startTime);
-		return (int) remainingTime / 1000;
-	}
-
-	private void updateTimeLeft() {
-		int remainingTime = getSecondsLeft();
-		if (remainingTime < 0) {
-			remainingTime = 0;
-		}
-		if (lastTimeLeft == remainingTime) {
-			return;
-		}
-		lastTimeLeft = remainingTime;
-		int minutes = remainingTime / 60;
-		int seconds = remainingTime - minutes * 60;
-		StringBuilder b = new StringBuilder();
-		if (minutes < 10) {
-			b.append("0");
-		}
-		b.append(minutes);
-		b.append(":");
-		if (seconds < 10) {
-			b.append("0");
-		}
-		b.append(seconds);
-		timeLeft.setText(b.toString());
-	}
+	private final Camera gameStage_camera;
 
 	final private DataBundle data = new DataBundle();
 
-	public SinglePlayerMazeScreen(final NumbersMaze app, DataBundle _data) {
+	private TheWorld world;
+
+	final protected Rectangle culler = new Rectangle();
+
+	private Box2DDebugRenderer debugRenderer = null;
+
+	private final Label info_label;
+
+	private final Label label_level;
+
+	private final Label label_score;
+	private final Array<Vector2> initialPortal = new Array<>();
+	private final Array<Vector2> numberPortal = new Array<>();
+	private String activeSong = null;
+	private final PlayerInput gamepadInput = new PlayerInput() {
+		@Override
+		public boolean keyUp(final int keycode) {
+			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
+				final ScreenChangeEvent e = new ScreenChangeEvent();
+				e.data.put(data);
+				e.screen = ScreenList.MainMenu;
+				NumbersMaze.post(e);
+				return true;
+			}
+			if (keycode == Keys.CENTER) {
+				Controller c;
+				final Array<Controller> controllers = Controllers.getControllers();
+				if (!controllers.isEmpty()) {
+					c = controllers.first();
+				} else {
+					c = null;
+				}
+				return buttonUp(c, Xbox.BUTTON_A);
+			}
+			return super.keyUp(keycode);
+		}
+	};
+
+	int maxInPlay = 15;
+	long tickOffset = 0;
+	private float simElapsed = 0;
+
+	private final float simStepRate = 1f / 60f;
+	private long lastShowPortalTick = 0;
+
+	private int totalValueLeft = -1;
+	private int theChallenge = 1;
+
+	public int theScore = 0;
+
+	private int lastScore = 0;
+
+	private long levelCompleteTick = 0;
+
+	private long restoreBlockTick = 0;
+	private final Array<Entity> eList = new Array<>();
+
+	Vector2 playerPos = new Vector2();
+	private boolean showPortal;
+	private long mem1;
+
+	private long mem2;
+	private long sinceLastNotice = 0;
+
+	private int lastChallenge = 0;
+	private final SetMicPos smp = new SetMicPos();
+
+	private float nextOrb = 0;
+
+	private long simStart = 0;
+
+	private final Vector2 aabb_size = new Vector2();
+
+	private final Vector2 aabb_lower = new Vector2();
+	private final Vector2 aabb_upper = new Vector2();
+
+	private final Array<Entity> floorTiles = new Array<>();
+	public int level = 1;
+	int mazeW = 20;
+	int mazeH = 10;
+
+	int tileGrideSize = 32;
+
+	AtlasRegion[] number_tile = null;
+
+	private final Array<Entity> blockList = new Array<>();
+
+	private final Body wallBody = null;
+	private final Entity wallStart = null;
+	private final Body floorBody = null;
+
+	private final Entity floorStart = null;
+
+	public boolean ultimate = false;
+
+	public long timelimit = 0l;
+
+	public SinglePlayerMazeScreen(final NumbersMaze app, final DataBundle _data) {
 		super();
 		data.put(_data);
 		level = data.getInteger("level", 1);
@@ -183,8 +204,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		this.app = app;
 		setShowFPS(false);
 
-		AtlasRegion ar_controls = S.getArg().findRegion("touch_buttons_0");
-		Image controls = new Image(ar_controls);
+		final AtlasRegion ar_controls = S.getArg().findRegion("touch_buttons_0");
+		final Image controls = new Image(ar_controls);
 		controls.setX(0);
 		controls.setY(0);
 
@@ -192,17 +213,17 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		gameStage.getRoot().setTransform(false);
 		backDrop.getRoot().setTransform(false);
 
-		BitmapFont f1 = S.getFnt().getFont(40);
-		BitmapFont f2 = S.getFnt().getFont(20);
+		final BitmapFont f1 = S.getFnt().getFont(40);
+		final BitmapFont f2 = S.getFnt().getFont(20);
 
-		LabelStyle ls = new LabelStyle(f2, new Color(Color.DARK_GRAY));
-		AtlasRegion ll_ar = S.getArg().findRegion("block_ltblue");
-		NinePatch ll_9 = new NinePatch(ll_ar, 12, 12, 12, 12);
+		final LabelStyle ls = new LabelStyle(f2, new Color(Color.DARK_GRAY));
+		final AtlasRegion ll_ar = S.getArg().findRegion("block_ltblue");
+		final NinePatch ll_9 = new NinePatch(ll_ar, 12, 12, 12, 12);
 		ls.background = new NinePatchDrawable(ll_9);
 
-		AtlasRegion infoStyle_ar = S.getArg().findRegion("block_ltblue");
-		NinePatch infoStyle_9 = new NinePatch(infoStyle_ar, 12, 12, 12, 12);
-		LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.RED));
+		final AtlasRegion infoStyle_ar = S.getArg().findRegion("block_ltblue");
+		final NinePatch infoStyle_9 = new NinePatch(infoStyle_ar, 12, 12, 12, 12);
+		final LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.RED));
 		infoStyle.background = new NinePatchDrawable(infoStyle_9);
 
 		label_level = new Label(levelInfoText(), ls);
@@ -216,9 +237,9 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		// info_label.getColor().a=.5f;
 		hud.addActor(info_label);
 
-		AtlasRegion scoreStyle_ar = S.getArg().findRegion("block_ltblue");
-		NinePatch scoreStyle_9 = new NinePatch(scoreStyle_ar, 12, 12, 12, 12);
-		LabelStyle score_style = new LabelStyle(f1, new Color(Color.DARK_GRAY));
+		final AtlasRegion scoreStyle_ar = S.getArg().findRegion("block_ltblue");
+		final NinePatch scoreStyle_9 = new NinePatch(scoreStyle_ar, 12, 12, 12, 12);
+		final LabelStyle score_style = new LabelStyle(f1, new Color(Color.DARK_GRAY));
 		score_style.background = new NinePatchDrawable(scoreStyle_9);
 		score_style.font.setFixedWidthGlyphs("0123456789");
 
@@ -232,8 +253,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		label_score.setY(overscan.y + overscan.height - label_score.getHeight());
 		hud.addActor(label_score);
 
-		AtlasRegion bg = S.getArg().findRegion("background-1");
-		Image background = new Image(bg);
+		final AtlasRegion bg = S.getArg().findRegion("background-1");
+		final Image background = new Image(bg);
 		background.setColor(1, 1, 1, .35f);
 		background.setFillParent(true);
 		background.setScaling(Scaling.fill);
@@ -260,7 +281,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		playerPos = player1.getWorldCenter();
 		joylist = Controllers.getControllers();
 
-		for (Controller c : joylist) {
+		for (final Controller c : joylist) {
 			Gdx.app.log(this.getClass().getSimpleName(), "INPUT: " + c.getName());
 		}
 
@@ -270,7 +291,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		setupMaze();
 
-		InputMultiplexer multi = new InputMultiplexer();
+		final InputMultiplexer multi = new InputMultiplexer();
 		multi.addProcessor(hud);
 		multi.addProcessor(player1.gamepad);
 		setInputProcessor(multi);
@@ -280,488 +301,11 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		nextOrb = DeathOrb.getLifeSpan() / 1000f;
 	}
 
-	public void setupMaze() {
-		Gdx.app.log(this.getClass().getSimpleName(), "MAZE: " + level);
-		tiles.clear();
-		blockList.clear();
-		calculateChallengeList(level);
-		int maxFaceValue = getMaxChallenge();
-		theChallenge = challengeList.removeIndex(0);
-		addMazeToStage(level, maxFaceValue);
-		player1.theChallenge = theChallenge;
-		player1.badValue_clear();
-		hud.addActor(label_level);
-		label_level.setY(overscan.y);
-		int blockListValue = getValue(blockList);
-		maxInPlay = blockListValue;
-		if (blockListValue < challengeTotalValue) {
-			player1.badValue_add(challengeTotalValue - blockListValue);
-		}
-		Gdx.app.log(this.getClass().getSimpleName(), "challengeTotalValue: " + challengeTotalValue);
-		Gdx.app.log(this.getClass().getSimpleName(), "blockListValue: " + blockListValue);
-		Gdx.app.log(this.getClass().getSimpleName(), "player1.badValue: " + player1.badValue_getPending());
-		label_level.setText(levelInfoText());
-		label_level.pack();
-
-		if (activeSong != null) {
-			MusicStopEvent e = new MusicStopEvent();
-			e.name = activeSong;
-			NumbersMaze.post(e);
-		}
-		activeSong = app.songs[(level - 1) % app.songs.length];
-		MusicPlayEvent e = new MusicPlayEvent();
-		e.name = activeSong;
-		e.loop = true;
-		NumbersMaze.post(e);
-	}
-
-	private String levelInfoText() {
-		return "Level: " + level + "\nNumber: " //
-				+ GenerateNumber.getCardinal(theChallenge) + " [" + theChallenge + "]";
-	}
-
-	static final float WORLD_TO_BOX = 20f;
-	static final float BOX_TO_WORLD = 1f / WORLD_TO_BOX;
-	private TheWorld world;
-	final protected Rectangle culler = new Rectangle();
-	private Box2DDebugRenderer debugRenderer = null;
-
-	private Label info_label;
-	private Label label_level;
-	private Label label_score;
-
-	private Array<Vector2> initialPortal = new Array<>();
-	private Array<Vector2> numberPortal = new Array<>();
-
-	private String activeSong = null;
-	private PlayerInput gamepadInput = new PlayerInput() {
-		@Override
-		public boolean keyUp(int keycode) {
-			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
-				ScreenChangeEvent e = new ScreenChangeEvent();
-				e.data.put(data);
-				e.screen = ScreenList.MainMenu;
-				NumbersMaze.post(e);
-				return true;
-			}
-			if (keycode == Keys.CENTER) {
-				Controller c;
-				Array<Controller> controllers = Controllers.getControllers();
-				if (!controllers.isEmpty()) {
-					c = controllers.first();
-				} else {
-					c = null;
-				}
-				return buttonUp(c, Xbox.BUTTON_A);
-			}
-			return super.keyUp(keycode);
-		}
-	};
-
-	int maxInPlay = 15;
-
-	long tickOffset = 0;
-
-	@Override
-	public void show() {
-		super.show();
-		startTime += System.currentTimeMillis() - tickOffset;
-		Controllers.addListener(player1.gamepad);
-		Gdx.app.log(this.getClass().getSimpleName(), "LEVEL: " + level);
-		if (activeSong != null) {
-			MusicPlayEvent e = new MusicPlayEvent();
-			e.name = activeSong;
-			e.loop = true;
-			NumbersMaze.post(e);
-		}
-		if (ultimate && timeLeft == null) {
-			AtlasRegion timeRemainingRegion = S.getArg().findRegion("block_ltblue");
-			NinePatch timeRemaining_9 = new NinePatch(timeRemainingRegion, 12, 12, 12, 12);
-			LabelStyle timeRemainingStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.DARK_GRAY));
-			timeRemainingStyle.background = new NinePatchDrawable(timeRemaining_9);
-			timeRemainingStyle.font.setFixedWidthGlyphs("0123456789");
-			timeLeft = new Label("00:00", timeRemainingStyle);
-			timeLeft.pack();
-			timeLeft.setX(overscan.x + overscan.width - timeLeft.getWidth());
-			timeLeft.setOrigin(timeLeft.getWidth() / 2, timeLeft.getHeight() / 2);
-			timeLeft.setHeight(timeLeft.getHeight() * .6f);
-			timeLeft.layout();
-			timeLeft.setY(overscan.y + overscan.height - timeLeft.getHeight());
-			hud.addActor(timeLeft);
-			updateTimeLeft();
-		}
-	}
-
-	private float simElapsed = 0;
-	private float simStepRate = 1f / 60f;
-
-	private long lastShowPortalTick = 0;
-	private int totalValueLeft = -1;
-	private int theChallenge = 1;
-
-	public int theScore = 0;
-	private int lastScore = 0;
-
-	private long levelCompleteTick = 0;
-	private long restoreBlockTick = 0;
-
-	private final Array<Entity> eList = new Array<>();
-
-	Vector2 playerPos = new Vector2();
-
-	private boolean showPortal;
-
-	private long mem1;
-	private long mem2;
-
-	private long sinceLastNotice = 0;
-	private int lastChallenge = 0;
-	private SetMicPos smp = new SetMicPos();
-	private float nextOrb = 0;
-
-	@Override
-	public void render(float delta) {
-
-		if (lastChallenge != theChallenge) {
-			lastChallenge = theChallenge;
-			PlayNumberSequence p = new PlayNumberSequence();
-			p.list.addAll(GenerateNumber.getAudioSequence(theChallenge));
-			p.screen = this;
-			NumbersMaze.post(p);
-		}
-
-		if (ultimate) {
-			updateTimeLeft();
-		}
-
-		if (maxInPlay < theChallenge) {
-			maxInPlay = theChallenge;
-		}
-
-		float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
-		float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
-
-		culler.x = playerPos.x - w / 2;
-		culler.y = playerPos.y - h / 2;
-		culler.width = w;
-		culler.height = h;
-
-		int camX = (int) player1.getX();
-		int camY = (int) player1.getY();
-
-		gameStage_camera.position.set(camX, camY, 0);
-		gameStage_camera.update();
-
-		super.render(delta);
-
-		if (world == null || world.getWorld() == null) {
-			return;
-		}
-		if (player1.gamepad.leftTrigger && debugRenderer != null) {
-			final Matrix4 debugMatrix = new Matrix4(gameStage_camera.combined);
-			debugMatrix.scale(WORLD_TO_BOX, WORLD_TO_BOX, 1f);
-			debugRenderer.render(world.getWorld(), debugMatrix);
-		}
-
-		mem1 = Gdx.app.getJavaHeap();
-		mem2 = Gdx.app.getNativeHeap();
-		info_label.setText("FPS: " + Gdx.graphics.getFramesPerSecond() + "\nMEM (j/n): " + mem1 / (1024 * 1024) + ", "
-				+ mem2 / (1024 * 1024));
-		info_label.pack();
-		info_label.setY(hud.getHeight() - info_label.getHeight());
-		smp.pos.set(playerPos);
-		NumbersMaze.post(smp);
-
-		showPortal = false;
-		if (player1.getPendingScore() != 0) {
-			theScore += player1.getPendingScoreAndZeroOut();
-			if (theScore < 0) {
-				theScore = 0;
-			}
-			if (challengeList.size > 0) {
-				theChallenge = challengeList.removeIndex(0);
-				player1.theChallenge = theChallenge;
-				label_level.setText(levelInfoText());
-				label_level.pack();
-			} else {
-				label_level.setText("ᏄᎳ! ᏄᎳ!\nExit the stage!");
-				label_level.pack();
-				while (blockList.size > 0) {
-					blockList.removeIndex(0).remove(true);
-				}
-			}
-			if (maxInPlay < theChallenge) {
-				maxInPlay = theChallenge;
-			}
-		}
-		if (lastScore != theScore) {
-			label_score.setText(theScore + "");
-			lastScore = theScore;
-			label_score.setText(String.format("%09d", theScore));
-		}
-
-		world.processOrphans(gameStage);
-		int blockListValue = getValue(blockList);
-		int inLimbo = player1.pointsInLimbo() + world.pointsInLimbo();
-		int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
-		totalValueLeft = blockListValue + badValue_pending + inLimbo;
-
-		// random death orbs, time gap between is based on level
-		nextOrb -= delta;
-		if (nextOrb < 0f) {
-			nextOrb = MathUtils.random(1f / level) * 60f + DeathOrb.getLifeSpan() / 2000f;
-			Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
-			if (centerSpotIsEmpty(new_block_pos)) {
-				new DeathOrb(world.getWorld(), player1.getWorldScale(), new_block_pos, 0);
-			}
-		}
-
-		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 500) {
-			Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
-			if (centerSpotIsEmpty(new_block_pos)) {
-				int maxFaceValue = getMaxChallenge();
-				if (player1.badValue_hasPending()) {
-					int dieValue = player1.badValue_getNext(maxFaceValue);
-					int dieFace = dieValue;
-					if (dieFace == 20) {
-						dieFace = 7;
-					}
-					if (dieFace == 80) {
-						dieFace = 8;
-					}
-					Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
-					blockList.add(tile);
-				} else if (world.badValue_hasPending()) {
-					int dieValue = world.badValue_getNext(maxFaceValue);
-					int dieFace = dieValue;
-					if (dieFace == 20) {
-						dieFace = 7;
-					}
-					if (dieFace == 80) {
-						dieFace = 8;
-					}
-					Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
-					blockList.add(tile);
-				}
-				if (System.currentTimeMillis() > sinceLastNotice) {
-					lastChallenge = 0;
-					sinceLastNotice = System.currentTimeMillis() + 30000;
-				}
-			}
-			Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
-			restoreBlockTick = System.currentTimeMillis();
-		}
-		// should portal be available check
-
-		if (totalValueLeft < theChallenge) {
-			showPortal = true;
-		} else {
-			lastShowPortalTick = System.currentTimeMillis();
-		}
-
-		if (showPortal && thePortal != null && System.currentTimeMillis() - lastShowPortalTick > 1500) {
-			if (System.currentTimeMillis() - levelCompleteTick > 4000) {
-				SoundPlayEvent e = new SoundPlayEvent();
-				e.name = "level_finished";
-				e.vol = .25f;
-				NumbersMaze.post(e);
-				levelCompleteTick = System.currentTimeMillis();
-			}
-			gameStage.addActor(thePortal);
-			thePortal.setVisible(true);
-			thePortal.toFront();
-			if (thePortal.getCollidesWith().size > 0) {
-				Iterator<Entity> i = thePortal.getCollidesWith().iterator();
-				while (i.hasNext()) {
-					Entity e = i.next();
-					if (e.identity == Entity.PLAYER) {
-						totalValueLeft = -1;
-						if (ultimate) {
-							theScore += getSecondsLeft();
-						}
-						ScreenChangeEvent e1 = new ScreenChangeEvent();
-						e1.data.putInteger("level", level + 1);
-						e1.data.putInteger("score", theScore);
-						e1.data.putBoolean("ultimate", ultimate);
-						e1.screen = ScreenList.OnePlayer;
-						NumbersMaze.post(e1);
-						return;
-					}
-				}
-
-			}
-		}
-		updateBox2dWorld();
-		updateStageWithWorld();
-	}
-
-	private boolean centerSpotIsEmpty(Vector2 new_block_pos) {
-		class IsEmpty {
-			boolean state = true;
-		}
-		final Vector2 start = new Vector2();
-		final Vector2 box_size = new Vector2();
-		final Vector2 warp_upper = new Vector2();
-		final Vector2 warp_lower = new Vector2();
-
-		start.set(new_block_pos);
-		start.scl(tileGrideSize);// convert to pixels
-		// shift by -16 for both x & y to match up for generateblock math
-		start.add(-16, -16);
-
-		box_size.set(9f, 9f); // PIXELS distance from CENTER
-		warp_lower.set(start);
-		warp_upper.set(start);
-
-		warp_lower.sub(box_size);
-		warp_upper.add(box_size);
-
-		warp_lower.scl(BOX_TO_WORLD);
-		warp_upper.scl(BOX_TO_WORLD);
-
-		final IsEmpty isEmpty = new IsEmpty();
-		isEmpty.state = true;
-		world.getWorld().QueryAABB(new QueryCallback() {
-			@Override
-			public boolean reportFixture(Fixture fixture) {
-				Body b = fixture.getBody();
-				Object o = b.getUserData();
-				if (o instanceof Entity) {
-					Entity e = (Entity) o;
-					if (e.identity != Entity.FLOOR) {
-						isEmpty.state = false;
-						return false;
-					}
-				}
-				return true;
-			}
-		}, warp_lower.x, warp_lower.y, warp_upper.x, warp_upper.y);
-		return isEmpty.state;
-	}
-
-	private long simStart = 0;
-
-	private final Vector2 aabb_size = new Vector2();
-	private final Vector2 aabb_lower = new Vector2();
-	private final Vector2 aabb_upper = new Vector2();
-
-	private final Array<Entity> floorTiles = new Array<>();
-
-	private void updateBox2dWorld() {
-		float simDelta = (System.currentTimeMillis() - simStart) / 1000f;
-		simStart = System.currentTimeMillis();
-		if (simDelta > simStepRate * 2) {
-			simDelta = simStepRate * 2;
-		}
-		simElapsed += simDelta;
-		if (simElapsed > simStepRate) {
-			world.step(simStepRate);
-			simElapsed -= simStepRate;
-		}
-
-	}
-
-	private void updateStageWithWorld() {
-		aabb_size.x = culler.width;// DisplaySize._720p.width() /
-									// player1.getWorldScale() + 64f *
-									// BOX_TO_WORLD;
-		aabb_size.y = culler.height;// DisplaySize._720p.height()/
-									// player1.getWorldScale() + 64f *
-									// BOX_TO_WORLD;
-
-		aabb_lower.x = playerPos.x - aabb_size.x / 2;
-		aabb_lower.y = playerPos.y - aabb_size.y / 2;
-		aabb_upper.x = playerPos.x + aabb_size.x / 2;
-		aabb_upper.y = playerPos.y + aabb_size.y / 2;
-		eList.clear();
-		world.getWorld().QueryAABB(new QueryCallback() {
-			@Override
-			public boolean reportFixture(Fixture fixture) {
-				Object a;
-				a = fixture.getUserData();
-				if (a == null) {
-					a = fixture.getBody().getUserData();
-				}
-				if (a != null && a instanceof Entity) {
-					Entity e = (Entity) a;
-					eList.add(e);
-				}
-				return true;
-			}
-		}, aabb_lower.x, aabb_lower.y, aabb_upper.x, aabb_upper.y);
-
-		// floors
-		for (Entity e : eList) {
-			if (e.identity != Entity.FLOOR) {
-				continue;
-			}
-			e.remove();
-			tiles.addActor(e);
-			e.updatePosition(true);
-		}
-		// walls
-		for (Entity e : eList) {
-			if (e.identity != Entity.WALL) {
-				continue;
-			}
-			e.remove();
-			tiles.addActor(e);
-			e.updatePosition(true);
-		}
-		// blocks
-		for (Entity e : eList) {
-			if (e.identity != Entity.BLOCK) {
-				continue;
-			}
-			e.remove();
-			tiles.addActor(e);
-			e.updatePosition(true);
-		}
-		// actors
-		for (Entity e : eList) {
-			if (e.getParent() != null) {
-				continue;
-			}
-			if (e.identity == Entity.PORTAL) {
-				continue;
-			}
-			if (e.identity == Entity.WALL | e.identity == Entity.BLOCK | e.identity == Entity.FLOOR) {
-				continue;
-			}
-
-			e.updatePosition(true);
-
-			gameStage.addActor(e);
-			e.updatePosition(true);
-
-		}
-
-	}
-
-	private int getValue(Array<Entity> g) {
-		int value = 0;
-		for (Entity e : g) {
-			if (e.identity == Entity.BLOCK) {
-				value += e.value;
-			}
-		}
-		return value;
-	}
-
-	public int level = 1;
-
-	int mazeW = 20;
-	int mazeH = 10;
-	int tileGrideSize = 32;
-
-	AtlasRegion[] number_tile = null;
-	private Array<Entity> blockList = new Array<>();
-
-	private void addMazeToStage(int mazeNumber, int maxFaceValue) {
+	private void addMazeToStage(final int mazeNumber, int maxFaceValue) {
 		if (maxFaceValue < 1) {
 			maxFaceValue = 1;
 		}
-		Random number_tile_random = new Random(mazeNumber);
+		final Random number_tile_random = new Random(mazeNumber);
 
 		number_tile = new AtlasRegion[8];
 		number_tile[0] = S.getArg().findRegion("d1");
@@ -773,21 +317,21 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		number_tile[6] = S.getArg().findRegion("super-die-20");
 		number_tile[7] = S.getArg().findRegion("super-die-80");
 
-		AtlasRegion[] floor_tile = new AtlasRegion[5];
+		final AtlasRegion[] floor_tile = new AtlasRegion[5];
 		for (int ix = 0; ix < 5; ix++) {
 			floor_tile[ix] = S.getArg().findRegion("floor" + ix);
 		}
 
-		AtlasRegion wall_tile = S.getArg().findRegion("wall");
-		AtlasRegion wall_tile2 = S.getArg().findRegion("wall2");
-		AtlasRegion wall_tile3 = S.getArg().findRegion("wall3");
-		AtlasRegion wall_tile4 = S.getArg().findRegion("wall4");
-		AtlasRegion wall_tile8 = S.getArg().findRegion("wall8");
-		AtlasRegion wall_tilev2 = S.getArg().findRegion("wallv2");
-		AtlasRegion wall_tilev3 = S.getArg().findRegion("wallv3");
-		AtlasRegion wall_tilev4 = S.getArg().findRegion("wallv4");
-		AtlasRegion wall_tilev8 = S.getArg().findRegion("wallv8");
-		AtlasRegion floor_portal = S.getArg().findRegion("floor-portal");
+		final AtlasRegion wall_tile = S.getArg().findRegion("wall");
+		final AtlasRegion wall_tile2 = S.getArg().findRegion("wall2");
+		final AtlasRegion wall_tile3 = S.getArg().findRegion("wall3");
+		final AtlasRegion wall_tile4 = S.getArg().findRegion("wall4");
+		final AtlasRegion wall_tile8 = S.getArg().findRegion("wall8");
+		final AtlasRegion wall_tilev2 = S.getArg().findRegion("wallv2");
+		final AtlasRegion wall_tilev3 = S.getArg().findRegion("wallv3");
+		final AtlasRegion wall_tilev4 = S.getArg().findRegion("wallv4");
+		final AtlasRegion wall_tilev8 = S.getArg().findRegion("wallv8");
+		final AtlasRegion floor_portal = S.getArg().findRegion("floor-portal");
 
 		initialPortal.clear();
 		numberPortal.clear();
@@ -801,11 +345,11 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			mazeH = 9 + mazeNumber / 9;
 		}
 		Maze mazeGen = new Maze(mazeNumber, mazeW, mazeH);
-		MazeCell[][] maze = mazeGen.get();
+		final MazeCell[][] maze = mazeGen.get();
 		mazeGen = null;
-		int displayGrid[][] = new int[maze.length * 3 + 1][maze[0].length * 3 + 1];
+		final int displayGrid[][] = new int[maze.length * 3 + 1][maze[0].length * 3 + 1];
 
-		Array<Entity> imgList = new Array<>();
+		final Array<Entity> imgList = new Array<>();
 
 		final int tile_blank = -1;
 		final int tile_floor = 0;
@@ -823,15 +367,15 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		for (int ix = 0; ix < maze.length; ix++) {
 			for (int iy = 0; iy < maze[0].length; iy++) {
-				MazeCell cell = maze[ix][iy];
+				final MazeCell cell = maze[ix][iy];
 				// Entity tile;
-				boolean isWestEdge = ix == 0;
-				boolean isEastEdge = ix + 1 == maze.length;
-				boolean isNorthEdge = iy + 1 == maze[0].length;
-				boolean isSouthEdge = iy == 0;
+				final boolean isWestEdge = ix == 0;
+				final boolean isEastEdge = ix + 1 == maze.length;
+				final boolean isNorthEdge = iy + 1 == maze[0].length;
+				final boolean isSouthEdge = iy == 0;
 
 				// 4x4 tiled grid for each maze cell
-				int grid[][] = new int[4][4];
+				final int grid[][] = new int[4][4];
 				for (int bx = 0; bx < 4; bx++) {
 					for (int by = 0; by < 4; by++) {
 						grid[bx][by] = tile_floor; // only floors to start with
@@ -874,7 +418,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				// add tiles to match grid pattern
 				for (int bx = 0; bx < 4; bx++) {
 					for (int by = 0; by < 4; by++) {
-						int c = grid[bx][by];
+						final int c = grid[bx][by];
 						if (c != tile_h1) {
 							continue;
 						}
@@ -894,7 +438,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			}
 		}
 
-		boolean createComposites = true;
+		final boolean createComposites = true;
 		if (createComposites) {
 			// look for horizontal block runs that can be converted into
 			// composites
@@ -1073,8 +617,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		// stick floor tiles under everything, starting 1 block in all
 		// directions
 		floorTiles.clear();
-		int xLen = displayGrid.length;
-		int yLen = displayGrid[0].length;
+		final int xLen = displayGrid.length;
+		final int yLen = displayGrid[0].length;
 		for (int ix = 1; ix < xLen; ix += 8) {
 			for (int iy = 1; iy < yLen; iy += 8) {
 				int w = xLen - ix - 2;
@@ -1085,13 +629,13 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				if (h > 7) {
 					h = 7;
 				}
-				float posX = ix - w / 2f;
-				float posY = iy - h / 2f;
-				float width = tileGrideSize * (w + 1);
-				float height = tileGrideSize * (h + 1);
-				int ml = floor_tile.length;
-				int mi = level % ml;
-				Entity tile = generateFloorTile(floor_tile[mi], posX, posY, width, height);
+				final float posX = ix - w / 2f;
+				final float posY = iy - h / 2f;
+				final float width = tileGrideSize * (w + 1);
+				final float height = tileGrideSize * (h + 1);
+				final int ml = floor_tile.length;
+				final int mi = level % ml;
+				final Entity tile = generateFloorTile(floor_tile[mi], posX, posY, width, height);
 				tile.identity = Entity.FLOOR;
 				imgList.add(tile);
 				floorTiles.add(tile);
@@ -1109,8 +653,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				}
 				// 2 wide composite block wall
 				if (displayGrid[ix][iy] == tile_h2) {
-					AtlasRegion a = wall_tile2;
-					float to = 0.5f;
+					final AtlasRegion a = wall_tile2;
+					final float to = 0.5f;
 					displayGrid[ix][iy] = tile_blank;
 					Entity tile;
 					tile = generateWallTile(a, ix + to, iy);
@@ -1144,8 +688,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				// vertical composites
 				// 8 tall composite block wall
 				if (displayGrid[ix][iy] == tile_v8) {
-					AtlasRegion a = wall_tilev8;
-					float to = 3.5f;
+					final AtlasRegion a = wall_tilev8;
+					final float to = 3.5f;
 					displayGrid[ix][iy] = tile_blank;
 					Entity tile;
 					tile = generateWallTile(a, ix, iy + to);
@@ -1154,8 +698,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				}
 				// 4 high composite block wall
 				if (displayGrid[ix][iy] == tile_v4) {
-					AtlasRegion a = wall_tilev4;
-					float to = 1.5f;
+					final AtlasRegion a = wall_tilev4;
+					final float to = 1.5f;
 					displayGrid[ix][iy] = tile_blank;
 					Entity tile;
 					tile = generateWallTile(a, ix, iy + to);
@@ -1164,8 +708,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				}
 				// 3 high composite block wall
 				if (displayGrid[ix][iy] == tile_v3) {
-					AtlasRegion a = wall_tilev3;
-					float to = 1f;
+					final AtlasRegion a = wall_tilev3;
+					final float to = 1f;
 					displayGrid[ix][iy] = tile_blank;
 					Entity tile;
 					tile = generateWallTile(a, ix, iy + to);
@@ -1174,8 +718,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				}
 				// 2 high composite block wall
 				if (displayGrid[ix][iy] == tile_v2) {
-					AtlasRegion a = wall_tilev2;
-					float to = 0.5f;
+					final AtlasRegion a = wall_tilev2;
+					final float to = 0.5f;
 					displayGrid[ix][iy] = tile_blank;
 					Entity tile;
 					tile = generateWallTile(a, ix, iy + to);
@@ -1184,7 +728,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				}
 
 				if (displayGrid[ix][iy] == tile_portal) {
-					Entity tile = new Entity(floor_portal);
+					final Entity tile = new Entity(floor_portal);
 					tile.identity = Entity.PORTAL;
 					thePortal = tile;
 					// tile.setColor(Color.BLUE);
@@ -1199,20 +743,20 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
 					tile.layout();
 
-					BodyDef bodyDef = new BodyDef();
+					final BodyDef bodyDef = new BodyDef();
 					bodyDef.type = BodyType.DynamicBody;
 					bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD,
 							(-16 + iy * tileGrideSize) * BOX_TO_WORLD);
-					float rad = tile.getWidth() * BOX_TO_WORLD / 2;
-					Body body = world.getWorld().createBody(bodyDef);
+					final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+					final Body body = world.getWorld().createBody(bodyDef);
 					body.setFixedRotation(false);
 					body.setLinearVelocity(new Vector2(0f, 0f));
 					body.setLinearDamping(1f);
 					// CircleShape circle=new CircleShape();
 					// circle.setRadius(rad);
-					PolygonShape box = new PolygonShape();
+					final PolygonShape box = new PolygonShape();
 					box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
-					FixtureDef fDef = new FixtureDef();
+					final FixtureDef fDef = new FixtureDef();
 					fDef.density = .01f;
 					fDef.friction = 1f;
 					fDef.restitution = 0.6f;
@@ -1233,7 +777,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 		// create and place the initial number blocks
 		for (int ix = 0; ix < initialPortal.size; ix++) {
-			Vector2 pos = initialPortal.get(ix);
+			final Vector2 pos = initialPortal.get(ix);
 			int die_face;
 			if (maxFaceValue < 30) {
 				do {
@@ -1247,192 +791,109 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			} else {
 				die_face = number_tile_random.nextInt(8);
 			}
-			Entity tile = generateBlockTile(number_tile, pos.x, pos.y, die_face);
+			final Entity tile = generateBlockTile(number_tile, pos.x, pos.y, die_face);
 			imgList.add(tile);
 			blockList.add(tile);
 		}
 		tiles.setTransform(false);
 		tiles.clear();
 		for (int i = 0; i < imgList.size; i++) {
-			Entity x = imgList.get(i);
+			final Entity x = imgList.get(i);
 			x.setCull(culler);
 			tiles.addActor(x);
 		}
 	}
 
-	private Body wallBody = null;
-	private Entity wallStart = null;
-	private Body floorBody = null;
-	private Entity floorStart = null;
-	public boolean ultimate = false;
-	public long timelimit = 0l;
+	private void calculateChallengeList(int level) {
+		level--;
+		final int challengeSet = level / challengeSplit + 1;
+		final int subSet = level % challengeSplit;
+		final int range = 7;
+		final int start = (challengeSet - 1) * range + 1;
+		final int end = start + range;
 
-	private Entity generateFloorTile(AtlasRegion floor_tile, float ix, float iy, float w_pix, float h_pix) {
-		float px = ix * tileGrideSize + (w_pix - tileGrideSize);
-		float py = iy * tileGrideSize + (h_pix - tileGrideSize);
-		Entity tile;
-		tile = new Entity(new TiledDrawable(floor_tile));
-		tile.identity = Entity.FLOOR;
-		// box2d is center of body based, set origin of object to
-		// match
-		tile.setWidth(w_pix);
-		tile.setHeight(h_pix);
-		tile.setOrigin(w_pix / 2, h_pix / 2);
-		tile.setScale(1);
-		tile.setOffsetX(-w_pix / 2);
-		tile.setOffsetY(-h_pix / 2);
-		tile.setWorldScale(WORLD_TO_BOX);
-		tile.setPosition(px, py);
-
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyType.StaticBody;
-		bodyDef.position.set(px * BOX_TO_WORLD, py * BOX_TO_WORLD);
-		float rad = tile.getWidth() * BOX_TO_WORLD / 2;
-		Body body = world.getWorld().createBody(bodyDef);
-		body.setFixedRotation(false);
-		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(1f);
-		PolygonShape box = new PolygonShape();
-		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
-		FixtureDef fDef = new FixtureDef();
-		fDef.density = 10f;
-		fDef.friction = 1f;
-		fDef.restitution = 0.6f;
-		fDef.shape = box;
-		fDef.filter.categoryBits = TheWorld.TYPE_FLOOR;
-		fDef.filter.maskBits = (short) (TheWorld.TYPE_FLOOR | TheWorld.TYPE_WALL);
-
-		body.createFixture(fDef).setUserData(tile);
-		body.setUserData(tile);
-		box.dispose();
-		tile.setBody(body);
-		return tile;
-	}
-
-	private Entity generateWallTile(AtlasRegion wall_tile, float ix, float iy) {
-		Entity tile;
-		tile = new Entity(wall_tile);
-		tile.identity = Entity.WALL;
-		// box2d is center of body based, set origin of object to
-		// match
-		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
-		tile.setScale(1);
-		tile.setOffsetX(-tile.getWidth() / 2);
-		tile.setOffsetY(-tile.getHeight() / 2);
-		tile.setWorldScale(WORLD_TO_BOX);
-		tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
-
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyType.StaticBody;
-		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy * tileGrideSize * BOX_TO_WORLD);
-		float rad = tile.getWidth() * BOX_TO_WORLD / 2;
-		Body body = world.getWorld().createBody(bodyDef);
-		body.setFixedRotation(false);
-		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(1f);
-		PolygonShape box = new PolygonShape();
-		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
-		FixtureDef fDef = new FixtureDef();
-		fDef.density = 10f;
-		fDef.friction = 1f;
-		fDef.restitution = 0.6f;
-		fDef.shape = box;
-		fDef.filter.categoryBits = TheWorld.TYPE_WALL;
-		fDef.filter.maskBits = TheWorld.TYPE_ALL;
-
-		body.createFixture(fDef).setUserData(tile);
-		body.setUserData(tile);
-		box.dispose();
-		tile.setBody(body);
-		return tile;
-	}
-
-	private Entity generateBlockTile(AtlasRegion[] number_tile, float ix, float iy, final int die_face) {
-		Entity tile = new Entity(number_tile[die_face]);
-		tile.identity = Entity.BLOCK;
-		tile.value = die_face + 1;
-		if (die_face == 6) {
-			tile.value = 20;
+		final IntArray seed = new IntArray();
+		for (int ix = start; ix < end; ix++) {
+			seed.add(ix);
 		}
-		if (die_face == 7) {
-			tile.value = 80;
-		}
-		tile.setColor(Color.WHITE);
-		// float tileSize = tile.getWidth();
-		// box2d is center of body based, set origin of object to
-		// match
-		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
-		tile.setScale(1);
-		tile.setOffsetX(-tile.getWidth() / 2);
-		tile.setOffsetY(-tile.getHeight() / 2);
-		tile.setWorldScale(WORLD_TO_BOX);
-		tile.setScale(.9f);
-		tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
-		tile.layout();
-		// tileSize *= tile.getScaleX();
-
-		float width = tile.getWidth() * tile.getScaleX();
-		float height = tile.getHeight() * tile.getScaleY();
-
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyType.DynamicBody;
-		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD, (-16 + iy * tileGrideSize) * BOX_TO_WORLD);
-		// float rad = (tile.getWidth() * BOX_TO_WORLD / 2);
-		Body body = world.getWorld().createBody(bodyDef);
-		body.setFixedRotation(false);
-		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(1f);
-		PolygonShape box = new PolygonShape();
-		box.setAsBox((width - 1) / 2 * BOX_TO_WORLD, (height - 1) / 2 * BOX_TO_WORLD);
-		FixtureDef fDef = new FixtureDef();
-		fDef.density = tile.value * .01f;
-		fDef.friction = 1f;
-		fDef.restitution = 0.6f;
-		fDef.shape = box;
-		if (tile.value < 80) {
-			fDef.filter.categoryBits = TheWorld.TYPE_BLOCK;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER);
-			;
+		if (start > range) {
+			for (int ix = start - range; ix < end - range; ix++) {
+				seed.add(ix);
+			}
 		} else {
-			fDef.filter.categoryBits = TheWorld.TYPE_WALL;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR);
-			;
-		}
-		body.createFixture(fDef);
-		body.setUserData(tile);
-		box.dispose();
-		body.setGravityScale(1f);
-		tile.setBody(body);
-		return tile;
-	}
-
-	@Override
-	public void hide() {
-		super.hide();
-		tickOffset = System.currentTimeMillis();
-		if (activeSong != null) {
-			MusicPauseEvent e = new MusicPauseEvent();
-			e.name = activeSong;
-			NumbersMaze.post(e);
-		}
-		if (player1 != null) {
-			Controllers.removeListener(player1.gamepad);
-		}
-		for (int ix = 0; ix < screenRunnable.size; ix++) {
-			if (screenRunnable.get(ix) instanceof NumberSequenceRunnable) {
-				screenRunnable.removeIndex(ix);
-				ix--;
+			for (int ix = start; ix < end; ix++) {
+				seed.add(ix);
 			}
 		}
-		StopNumbers s = new StopNumbers();
-		NumbersMaze.post(s);
+		final GraduatedIntervalQueue giq = new GraduatedIntervalQueue();
+		giq.setShortList(true);
+		giq.load(seed);
+		challengeList.clear();
+		final ArrayList<Integer> list = giq.getIntervalQueue();
+		Gdx.app.log(this.getClass().getSimpleName(), "MASTER CHALLENGE LIST: " + list.size() + " := " + list);
+		final int split = list.size() / challengeSplit;
+		final int setStart = split * subSet;
+		final int nextSet = split * (subSet + 1);
+		for (int ix = setStart; ix < nextSet; ix++) {
+			challengeList.add(list.get(ix));
+		}
+		Gdx.app.log(this.getClass().getSimpleName(),
+				"LEVEL CHALLENGE LIST: " + challengeList.size + " := " + challengeList);
+		challengeTotalValue = 0;
+		for (final Integer i : challengeList) {
+			challengeTotalValue += i;
+		}
+	}
+
+	private boolean centerSpotIsEmpty(final Vector2 new_block_pos) {
+		class IsEmpty {
+			boolean state = true;
+		}
+		final Vector2 start = new Vector2();
+		final Vector2 box_size = new Vector2();
+		final Vector2 warp_upper = new Vector2();
+		final Vector2 warp_lower = new Vector2();
+
+		start.set(new_block_pos);
+		start.scl(tileGrideSize);// convert to pixels
+		// shift by -16 for both x & y to match up for generateblock math
+		start.add(-16, -16);
+
+		box_size.set(9f, 9f); // PIXELS distance from CENTER
+		warp_lower.set(start);
+		warp_upper.set(start);
+
+		warp_lower.sub(box_size);
+		warp_upper.add(box_size);
+
+		warp_lower.scl(BOX_TO_WORLD);
+		warp_upper.scl(BOX_TO_WORLD);
+
+		final IsEmpty isEmpty = new IsEmpty();
+		isEmpty.state = true;
+		world.getWorld().QueryAABB(new QueryCallback() {
+			@Override
+			public boolean reportFixture(final Fixture fixture) {
+				final Body b = fixture.getBody();
+				final Object o = b.getUserData();
+				if (o instanceof Entity) {
+					final Entity e = (Entity) o;
+					if (e.identity != Entity.FLOOR) {
+						isEmpty.state = false;
+						return false;
+					}
+				}
+				return true;
+			}
+		}, warp_lower.x, warp_lower.y, warp_upper.x, warp_upper.y);
+		return isEmpty.state;
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
 		if (activeSong != null) {
-			MusicStopEvent e = new MusicStopEvent();
+			final MusicStopEvent e = new MusicStopEvent();
 			e.name = activeSong;
 			NumbersMaze.post(e);
 		}
@@ -1455,5 +916,554 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			world.dispose();
 			world = null;
 		}
+	}
+
+	private Entity generateBlockTile(final AtlasRegion[] number_tile, final float ix, final float iy,
+			final int die_face) {
+		final Entity tile = new Entity(number_tile[die_face]);
+		tile.identity = Entity.BLOCK;
+		tile.value = die_face + 1;
+		if (die_face == 6) {
+			tile.value = 20;
+		}
+		if (die_face == 7) {
+			tile.value = 80;
+		}
+		tile.setColor(Color.WHITE);
+		// float tileSize = tile.getWidth();
+		// box2d is center of body based, set origin of object to
+		// match
+		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
+		tile.setScale(1);
+		tile.setOffsetX(-tile.getWidth() / 2);
+		tile.setOffsetY(-tile.getHeight() / 2);
+		tile.setWorldScale(WORLD_TO_BOX);
+		tile.setScale(.9f);
+		tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
+		tile.layout();
+		// tileSize *= tile.getScaleX();
+
+		final float width = tile.getWidth() * tile.getScaleX();
+		final float height = tile.getHeight() * tile.getScaleY();
+
+		final BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD, (-16 + iy * tileGrideSize) * BOX_TO_WORLD);
+		// float rad = (tile.getWidth() * BOX_TO_WORLD / 2);
+		final Body body = world.getWorld().createBody(bodyDef);
+		body.setFixedRotation(false);
+		body.setLinearVelocity(new Vector2(0f, 0f));
+		body.setLinearDamping(1f);
+		final PolygonShape box = new PolygonShape();
+		box.setAsBox((width - 1) / 2 * BOX_TO_WORLD, (height - 1) / 2 * BOX_TO_WORLD);
+		final FixtureDef fDef = new FixtureDef();
+		fDef.density = tile.value * .01f;
+		fDef.friction = 1f;
+		fDef.restitution = 0.6f;
+		fDef.shape = box;
+		if (tile.value < 80) {
+			fDef.filter.categoryBits = TheWorld.TYPE_BLOCK;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER);
+
+		} else {
+			fDef.filter.categoryBits = TheWorld.TYPE_WALL;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR);
+
+		}
+		body.createFixture(fDef);
+		body.setUserData(tile);
+		box.dispose();
+		body.setGravityScale(1f);
+		tile.setBody(body);
+		return tile;
+	}
+
+	private Entity generateFloorTile(final AtlasRegion floor_tile, final float ix, final float iy, final float w_pix,
+			final float h_pix) {
+		final float px = ix * tileGrideSize + (w_pix - tileGrideSize);
+		final float py = iy * tileGrideSize + (h_pix - tileGrideSize);
+		Entity tile;
+		tile = new Entity(new TiledDrawable(floor_tile));
+		tile.identity = Entity.FLOOR;
+		// box2d is center of body based, set origin of object to
+		// match
+		tile.setWidth(w_pix);
+		tile.setHeight(h_pix);
+		tile.setOrigin(w_pix / 2, h_pix / 2);
+		tile.setScale(1);
+		tile.setOffsetX(-w_pix / 2);
+		tile.setOffsetY(-h_pix / 2);
+		tile.setWorldScale(WORLD_TO_BOX);
+		tile.setPosition(px, py);
+
+		final BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyType.StaticBody;
+		bodyDef.position.set(px * BOX_TO_WORLD, py * BOX_TO_WORLD);
+		final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		final Body body = world.getWorld().createBody(bodyDef);
+		body.setFixedRotation(false);
+		body.setLinearVelocity(new Vector2(0f, 0f));
+		body.setLinearDamping(1f);
+		final PolygonShape box = new PolygonShape();
+		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
+		final FixtureDef fDef = new FixtureDef();
+		fDef.density = 10f;
+		fDef.friction = 1f;
+		fDef.restitution = 0.6f;
+		fDef.shape = box;
+		fDef.filter.categoryBits = TheWorld.TYPE_FLOOR;
+		fDef.filter.maskBits = (short) (TheWorld.TYPE_FLOOR | TheWorld.TYPE_WALL);
+
+		body.createFixture(fDef).setUserData(tile);
+		body.setUserData(tile);
+		box.dispose();
+		tile.setBody(body);
+		return tile;
+	}
+
+	private Entity generateWallTile(final AtlasRegion wall_tile, final float ix, final float iy) {
+		Entity tile;
+		tile = new Entity(wall_tile);
+		tile.identity = Entity.WALL;
+		// box2d is center of body based, set origin of object to
+		// match
+		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
+		tile.setScale(1);
+		tile.setOffsetX(-tile.getWidth() / 2);
+		tile.setOffsetY(-tile.getHeight() / 2);
+		tile.setWorldScale(WORLD_TO_BOX);
+		tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
+
+		final BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyType.StaticBody;
+		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy * tileGrideSize * BOX_TO_WORLD);
+		final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		final Body body = world.getWorld().createBody(bodyDef);
+		body.setFixedRotation(false);
+		body.setLinearVelocity(new Vector2(0f, 0f));
+		body.setLinearDamping(1f);
+		final PolygonShape box = new PolygonShape();
+		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
+		final FixtureDef fDef = new FixtureDef();
+		fDef.density = 10f;
+		fDef.friction = 1f;
+		fDef.restitution = 0.6f;
+		fDef.shape = box;
+		fDef.filter.categoryBits = TheWorld.TYPE_WALL;
+		fDef.filter.maskBits = TheWorld.TYPE_ALL;
+
+		body.createFixture(fDef).setUserData(tile);
+		body.setUserData(tile);
+		box.dispose();
+		tile.setBody(body);
+		return tile;
+	}
+
+	private int getMaxChallenge() {
+		int m = 0;
+		for (final Integer i : challengeList) {
+			if (i > m) {
+				m = i;
+			}
+		}
+		return m;
+	}
+
+	private int getSecondsLeft() {
+		final long remainingTime = timelimit - (System.currentTimeMillis() - startTime);
+		return (int) remainingTime / 1000;
+	}
+
+	private int getValue(final Array<Entity> g) {
+		int value = 0;
+		for (final Entity e : g) {
+			if (e.identity == Entity.BLOCK) {
+				value += e.value;
+			}
+		}
+		return value;
+	}
+
+	@Override
+	public void hide() {
+		super.hide();
+		tickOffset = System.currentTimeMillis();
+		if (activeSong != null) {
+			final MusicPauseEvent e = new MusicPauseEvent();
+			e.name = activeSong;
+			NumbersMaze.post(e);
+		}
+		if (player1 != null) {
+			Controllers.removeListener(player1.gamepad);
+		}
+		for (int ix = 0; ix < screenRunnable.size; ix++) {
+			if (screenRunnable.get(ix) instanceof NumberSequenceRunnable) {
+				screenRunnable.removeIndex(ix);
+				ix--;
+			}
+		}
+		final StopNumbers s = new StopNumbers();
+		NumbersMaze.post(s);
+	}
+
+	private String levelInfoText() {
+		return "Level: " + level + "\nNumber: " //
+				+ GenerateNumber.getCardinal(theChallenge) + " [" + theChallenge + "]";
+	}
+
+	@Override
+	public void render(final float delta) {
+
+		if (lastChallenge != theChallenge) {
+			lastChallenge = theChallenge;
+			final PlayNumberSequence p = new PlayNumberSequence();
+			p.list.addAll(GenerateNumber.getAudioSequence(theChallenge));
+			p.screen = this;
+			NumbersMaze.post(p);
+		}
+
+		if (ultimate) {
+			updateTimeLeft();
+		}
+
+		if (maxInPlay < theChallenge) {
+			maxInPlay = theChallenge;
+		}
+
+		final float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
+		final float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
+
+		culler.x = playerPos.x - w / 2;
+		culler.y = playerPos.y - h / 2;
+		culler.width = w;
+		culler.height = h;
+
+		final int camX = (int) player1.getX();
+		final int camY = (int) player1.getY();
+
+		gameStage_camera.position.set(camX, camY, 0);
+		gameStage_camera.update();
+
+		super.render(delta);
+
+		if (world == null || world.getWorld() == null) {
+			return;
+		}
+		if (player1.gamepad.leftTrigger && debugRenderer != null) {
+			final Matrix4 debugMatrix = new Matrix4(gameStage_camera.combined);
+			debugMatrix.scale(WORLD_TO_BOX, WORLD_TO_BOX, 1f);
+			debugRenderer.render(world.getWorld(), debugMatrix);
+		}
+
+		mem1 = Gdx.app.getJavaHeap();
+		mem2 = Gdx.app.getNativeHeap();
+		info_label.setText("FPS: " + Gdx.graphics.getFramesPerSecond() + "\nMEM (j/n): " + mem1 / (1024 * 1024) + ", "
+				+ mem2 / (1024 * 1024));
+		info_label.pack();
+		info_label.setY(hud.getHeight() - info_label.getHeight());
+		smp.pos.set(playerPos);
+		NumbersMaze.post(smp);
+
+		showPortal = false;
+		if (player1.getPendingScore() != 0) {
+			theScore += player1.getPendingScoreAndZeroOut();
+			if (theScore < 0) {
+				theScore = 0;
+			}
+			if (challengeList.size > 0) {
+				theChallenge = challengeList.removeIndex(0);
+				player1.theChallenge = theChallenge;
+				label_level.setText(levelInfoText());
+				label_level.pack();
+			} else {
+				label_level.setText("ᏄᎳ! ᏄᎳ!\nExit the stage!");
+				label_level.pack();
+				while (blockList.size > 0) {
+					blockList.removeIndex(0).remove(true);
+				}
+			}
+			if (maxInPlay < theChallenge) {
+				maxInPlay = theChallenge;
+			}
+		}
+		if (lastScore != theScore) {
+			label_score.setText(theScore + "");
+			lastScore = theScore;
+			label_score.setText(String.format("%09d", theScore));
+		}
+
+		world.processOrphans(gameStage);
+		final int blockListValue = getValue(blockList);
+		final int inLimbo = player1.pointsInLimbo() + world.pointsInLimbo();
+		final int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
+		totalValueLeft = blockListValue + badValue_pending + inLimbo;
+
+		// random death orbs, time gap between is based on level
+		nextOrb -= delta;
+		if (nextOrb < 0f) {
+			nextOrb = MathUtils.random(1f / level) * 60f + DeathOrb.getLifeSpan() / 2000f;
+			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
+			if (centerSpotIsEmpty(new_block_pos)) {
+				new DeathOrb(world.getWorld(), player1.getWorldScale(), new_block_pos, 0);
+			}
+		}
+
+		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 500) {
+			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
+			if (centerSpotIsEmpty(new_block_pos)) {
+				final int maxFaceValue = getMaxChallenge();
+				if (player1.badValue_hasPending()) {
+					final int dieValue = player1.badValue_getNext(maxFaceValue);
+					int dieFace = dieValue;
+					if (dieFace == 20) {
+						dieFace = 7;
+					}
+					if (dieFace == 80) {
+						dieFace = 8;
+					}
+					final Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
+					blockList.add(tile);
+				} else if (world.badValue_hasPending()) {
+					final int dieValue = world.badValue_getNext(maxFaceValue);
+					int dieFace = dieValue;
+					if (dieFace == 20) {
+						dieFace = 7;
+					}
+					if (dieFace == 80) {
+						dieFace = 8;
+					}
+					final Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
+					blockList.add(tile);
+				}
+				if (System.currentTimeMillis() > sinceLastNotice) {
+					lastChallenge = 0;
+					sinceLastNotice = System.currentTimeMillis() + 30000;
+				}
+			}
+			Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
+			restoreBlockTick = System.currentTimeMillis();
+		}
+		// should portal be available check
+
+		if (totalValueLeft < theChallenge) {
+			showPortal = true;
+		} else {
+			lastShowPortalTick = System.currentTimeMillis();
+		}
+
+		if (showPortal && thePortal != null && System.currentTimeMillis() - lastShowPortalTick > 1500) {
+			if (System.currentTimeMillis() - levelCompleteTick > 4000) {
+				final SoundPlayEvent e = new SoundPlayEvent();
+				e.name = "level_finished";
+				e.vol = .25f;
+				NumbersMaze.post(e);
+				levelCompleteTick = System.currentTimeMillis();
+			}
+			gameStage.addActor(thePortal);
+			thePortal.setVisible(true);
+			thePortal.toFront();
+			if (thePortal.getCollidesWith().size > 0) {
+				final Iterator<Entity> i = thePortal.getCollidesWith().iterator();
+				while (i.hasNext()) {
+					final Entity e = i.next();
+					if (e.identity == Entity.PLAYER) {
+						totalValueLeft = -1;
+						if (ultimate) {
+							theScore += getSecondsLeft();
+						}
+						final ScreenChangeEvent e1 = new ScreenChangeEvent();
+						e1.data.putInteger("level", level + 1);
+						e1.data.putInteger("score", theScore);
+						e1.data.putBoolean("ultimate", ultimate);
+						e1.screen = ScreenList.OnePlayer;
+						NumbersMaze.post(e1);
+						return;
+					}
+				}
+
+			}
+		}
+		updateBox2dWorld();
+		updateStageWithWorld();
+	}
+
+	public void setupMaze() {
+		Gdx.app.log(this.getClass().getSimpleName(), "MAZE: " + level);
+		tiles.clear();
+		blockList.clear();
+		calculateChallengeList(level);
+		final int maxFaceValue = getMaxChallenge();
+		theChallenge = challengeList.removeIndex(0);
+		addMazeToStage(level, maxFaceValue);
+		player1.theChallenge = theChallenge;
+		player1.badValue_clear();
+		hud.addActor(label_level);
+		label_level.setY(overscan.y);
+		final int blockListValue = getValue(blockList);
+		maxInPlay = blockListValue;
+		if (blockListValue < challengeTotalValue) {
+			player1.badValue_add(challengeTotalValue - blockListValue);
+		}
+		Gdx.app.log(this.getClass().getSimpleName(), "challengeTotalValue: " + challengeTotalValue);
+		Gdx.app.log(this.getClass().getSimpleName(), "blockListValue: " + blockListValue);
+		Gdx.app.log(this.getClass().getSimpleName(), "player1.badValue: " + player1.badValue_getPending());
+		label_level.setText(levelInfoText());
+		label_level.pack();
+
+		if (activeSong != null) {
+			final MusicStopEvent e = new MusicStopEvent();
+			e.name = activeSong;
+			NumbersMaze.post(e);
+		}
+		activeSong = app.songs[(level - 1) % app.songs.length];
+		final MusicPlayEvent e = new MusicPlayEvent();
+		e.name = activeSong;
+		e.loop = true;
+		NumbersMaze.post(e);
+	}
+
+	@Override
+	public void show() {
+		super.show();
+		startTime += System.currentTimeMillis() - tickOffset;
+		Controllers.addListener(player1.gamepad);
+		Gdx.app.log(this.getClass().getSimpleName(), "LEVEL: " + level);
+		if (activeSong != null) {
+			final MusicPlayEvent e = new MusicPlayEvent();
+			e.name = activeSong;
+			e.loop = true;
+			NumbersMaze.post(e);
+		}
+		if (ultimate && timeLeft == null) {
+			final AtlasRegion timeRemainingRegion = S.getArg().findRegion("block_ltblue");
+			final NinePatch timeRemaining_9 = new NinePatch(timeRemainingRegion, 12, 12, 12, 12);
+			final LabelStyle timeRemainingStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.DARK_GRAY));
+			timeRemainingStyle.background = new NinePatchDrawable(timeRemaining_9);
+			timeRemainingStyle.font.setFixedWidthGlyphs("0123456789");
+			timeLeft = new Label("00:00", timeRemainingStyle);
+			timeLeft.pack();
+			timeLeft.setX(overscan.x + overscan.width - timeLeft.getWidth());
+			timeLeft.setOrigin(timeLeft.getWidth() / 2, timeLeft.getHeight() / 2);
+			timeLeft.setHeight(timeLeft.getHeight() * .6f);
+			timeLeft.layout();
+			timeLeft.setY(overscan.y + overscan.height - timeLeft.getHeight());
+			hud.addActor(timeLeft);
+			updateTimeLeft();
+		}
+	}
+
+	private void updateBox2dWorld() {
+		float simDelta = (System.currentTimeMillis() - simStart) / 1000f;
+		simStart = System.currentTimeMillis();
+		if (simDelta > simStepRate * 2) {
+			simDelta = simStepRate * 2;
+		}
+		simElapsed += simDelta;
+		if (simElapsed > simStepRate) {
+			world.step(simStepRate);
+			simElapsed -= simStepRate;
+		}
+
+	}
+
+	private void updateStageWithWorld() {
+		aabb_size.x = culler.width;// DisplaySize._720p.width() /
+									// player1.getWorldScale() + 64f *
+									// BOX_TO_WORLD;
+		aabb_size.y = culler.height;// DisplaySize._720p.height()/
+									// player1.getWorldScale() + 64f *
+									// BOX_TO_WORLD;
+
+		aabb_lower.x = playerPos.x - aabb_size.x / 2;
+		aabb_lower.y = playerPos.y - aabb_size.y / 2;
+		aabb_upper.x = playerPos.x + aabb_size.x / 2;
+		aabb_upper.y = playerPos.y + aabb_size.y / 2;
+		eList.clear();
+		world.getWorld().QueryAABB(new QueryCallback() {
+			@Override
+			public boolean reportFixture(final Fixture fixture) {
+				Object a;
+				a = fixture.getUserData();
+				if (a == null) {
+					a = fixture.getBody().getUserData();
+				}
+				if (a != null && a instanceof Entity) {
+					final Entity e = (Entity) a;
+					eList.add(e);
+				}
+				return true;
+			}
+		}, aabb_lower.x, aabb_lower.y, aabb_upper.x, aabb_upper.y);
+
+		// floors
+		for (final Entity e : eList) {
+			if (e.identity != Entity.FLOOR) {
+				continue;
+			}
+			e.remove();
+			tiles.addActor(e);
+			e.updatePosition(true);
+		}
+		// walls
+		for (final Entity e : eList) {
+			if (e.identity != Entity.WALL) {
+				continue;
+			}
+			e.remove();
+			tiles.addActor(e);
+			e.updatePosition(true);
+		}
+		// blocks
+		for (final Entity e : eList) {
+			if (e.identity != Entity.BLOCK) {
+				continue;
+			}
+			e.remove();
+			tiles.addActor(e);
+			e.updatePosition(true);
+		}
+		// actors
+		for (final Entity e : eList) {
+			if (e.getParent() != null) {
+				continue;
+			}
+			if (e.identity == Entity.PORTAL) {
+				continue;
+			}
+			if (e.identity == Entity.WALL | e.identity == Entity.BLOCK | e.identity == Entity.FLOOR) {
+				continue;
+			}
+
+			e.updatePosition(true);
+
+			gameStage.addActor(e);
+			e.updatePosition(true);
+
+		}
+
+	}
+
+	private void updateTimeLeft() {
+		int remainingTime = getSecondsLeft();
+		if (remainingTime < 0) {
+			remainingTime = 0;
+		}
+		if (lastTimeLeft == remainingTime) {
+			return;
+		}
+		lastTimeLeft = remainingTime;
+		final int minutes = remainingTime / 60;
+		final int seconds = remainingTime - minutes * 60;
+		final StringBuilder b = new StringBuilder();
+		if (minutes < 10) {
+			b.append("0");
+		}
+		b.append(minutes);
+		b.append(":");
+		if (seconds < 10) {
+			b.append("0");
+		}
+		b.append(seconds);
+		timeLeft.setText(b.toString());
 	}
 }

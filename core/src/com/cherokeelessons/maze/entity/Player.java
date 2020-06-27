@@ -25,117 +25,92 @@ import com.cherokeelessons.maze.game.TheWorld;
 
 public class Player extends Entity {
 
-	public BitmapFont scoreFont=null;
-	
-	private float avatarScale=.8f;
-	private Random r=new Random();
-	
+	final public static int NORTH = 0;
+
+	final public static int EAST = 1;
+	final public static int WEST = 2;
+
+	final public static int SOUTH = 3;
+	public BitmapFont scoreFont = null;
+
+	private final float avatarScale = .8f;
+	private final Random r = new Random();
 	public int theChallenge = 1;
 	public int myScore = 0;
-	
-	private int badAccumulator=0;
-	public boolean badValue_hasPending(){
-		return badAccumulator>0;
-	}
-	public int badValue_getPending(){
-		return badAccumulator;
-	}
-	public void badValue_add(int value) {
-		badAccumulator+=value;
-	}
-	Array<Integer> dieDeck=new Array<>();
-	public int badValue_getNext(int maxFaceValue){
-		int gbv=0;
-		if (badAccumulator<1) {
-			return 0;
-		}
-		if (badAccumulator==1) {
-			badAccumulator=0;
-			return 1;
-		}
-		do {
-			if (dieDeck.size==0) {
-				int sides=6;
-				if (badAccumulator>30 && maxFaceValue>30) {
-					sides=7;
-				}
-				if (badAccumulator>100 && maxFaceValue>100) {
-					sides=8;
-				}
-				for (int i=0; i<sides; i++) {
-					dieDeck.add(i+1);
-				}
-				dieDeck.shuffle();
-			}
-			gbv = dieDeck.removeIndex(0);
-			//convert die face into VALUE
-			if (gbv==7) {
-				gbv=20;
-			}
-			if (gbv==8) {
-				gbv=80;
-			}
-		} while (gbv>badAccumulator);
-		badAccumulator-=gbv;
-		return gbv;
-	}
-	public void badValue_clear(){
-		badAccumulator=0;
-	}
-
+	private int badAccumulator = 0;
+	Array<Integer> dieDeck = new Array<>();
 	private Entity holding = null;
+
 	private Joint joint = null;
 	private boolean prev_btn_x = false;
 	private boolean prev_btn_a = false;
 	private boolean toggledOn = false;
 	private boolean toggledOff = false;
-
-	private int arrows = 10;
+	private final int arrows = 10;
 
 	final private Vector2 aabb_size = new Vector2();
+
 	final private Vector2 aabb_lower = new Vector2();
 	final private Vector2 aabb_upper = new Vector2();
-
 	private int pendingScore = 0;
-	
-	
-	
-	public boolean pendingArrows() {
-		return false;
-	}
-	
-	public int pointsInLimbo() {
-		int total = 0;
-		for (int ix = arrow_tracker.size() - 1; ix >= 0; ix--) {
-			total += arrow_tracker.get(ix).accumulator;
-		}
-		return total;
-	}
 
 	final Vector2 impulse = new Vector2();
+
+	public PlayerInput gamepad = new PlayerInput();
+
+	private AtlasRegion[][] ar;
+
+	private final ArrayList<ArrowGroup> arrow_tracker = new ArrayList<>();
+	private int lastDir = -1;
+
+	private final int lastX = -1;
+	private final int lastY = -1;
+
+	public Player() {
+		super();
+		r.setSeed(0);
+		final TextureAtlas atlas = S.getPar().playerAtlas;
+		ar = new AtlasRegion[4][4];
+		for (int ix = 0; ix < 4; ix++) {
+			ar[NORTH][ix] = atlas.findRegion("north-" + ix);
+			ar[EAST][ix] = atlas.findRegion("east-" + ix);
+			ar[WEST][ix] = atlas.findRegion("west-" + ix);
+			ar[SOUTH][ix] = atlas.findRegion("south-" + ix);
+		}
+		showAvatar(SOUTH);
+		identity = Entity.PLAYER;
+		setName("Player");
+	}
+
+	public Player(final AtlasRegion ar) {
+		super(ar);
+		r.setSeed(0);
+	}
+
 	@Override
-	public void act(float delta) {
+	public void act(final float delta) {
 		super.act(delta);
 		if (body == null) {
 			return;
 		}
 
 		for (int ix = arrow_tracker.size() - 1; ix >= 0; ix--) {
-			ArrowGroup arrowGroup = arrow_tracker.get(ix);
+			final ArrowGroup arrowGroup = arrow_tracker.get(ix);
 			if (arrowGroup.group.getChildren().size < 1) {
 				if (arrowGroup.boxCount > 0) {
-					if (arrowGroup.accumulator==theChallenge) {
-						final int newPoints = arrowGroup.boxCount*arrowGroup.accumulator;
+					if (arrowGroup.accumulator == theChallenge) {
+						final int newPoints = arrowGroup.boxCount * arrowGroup.accumulator;
 						addToPendingScore(newPoints);
-						if (scoreFont!=null) {
-							final Vector2 p=arrowGroup.getPos();
-							ScorePopup s = new ScorePopup(newPoints, p.x+16, p.y+16, scoreFont);
+						if (scoreFont != null) {
+							final Vector2 p = arrowGroup.getPos();
+							final ScorePopup s = new ScorePopup(newPoints, p.x + 16, p.y + 16, scoreFont);
 							getStage().addActor(s.getLabel());
 						}
 					} else {
-						Gdx.app.log(this.getClass().getSimpleName(),"DEATH ORB!");
-						badAccumulator+=arrowGroup.accumulator;
-						DeathOrb orb=new DeathOrb(body.getWorld(), worldScale, arrowGroup.getWorldPos(), arrowGroup.accumulator);
+						Gdx.app.log(this.getClass().getSimpleName(), "DEATH ORB!");
+						badAccumulator += arrowGroup.accumulator;
+						final DeathOrb orb = new DeathOrb(body.getWorld(), worldScale, arrowGroup.getWorldPos(),
+								arrowGroup.accumulator);
 						getStage().addActor(orb);
 					}
 				}
@@ -166,12 +141,12 @@ public class Player extends Entity {
 			// AABB search to ensure we have any boxes in our sights!
 			body.getWorld().QueryAABB(new QueryCallback() {
 				@Override
-				public boolean reportFixture(Fixture fixture) {
-					Object a = fixture.getBody().getUserData();
+				public boolean reportFixture(final Fixture fixture) {
+					final Object a = fixture.getBody().getUserData();
 					if (!Entity.class.isAssignableFrom(a.getClass())) {
 						return true;
 					}
-					Entity e = (Entity) a;
+					final Entity e = (Entity) a;
 					if (e.identity == Entity.BLOCK) {
 						getCollidesWith().add(e);
 						return true; // keep looking
@@ -181,9 +156,9 @@ public class Player extends Entity {
 			}, aabb_lower.x, aabb_lower.y, aabb_upper.x, aabb_upper.y);
 			// find first collides with
 			float d = 0;
-			for (Entity item : getCollidesWith()) {
+			for (final Entity item : getCollidesWith()) {
 				if (item.identity == Entity.BLOCK) {
-					float d2 = worldCenter.dst(item.getBody().getWorldCenter());
+					final float d2 = worldCenter.dst(item.getBody().getWorldCenter());
 					if (d2 < d || box == null) {
 						box = item;
 						d = d2;
@@ -195,9 +170,9 @@ public class Player extends Entity {
 				addAudio(Effect.PICK_UP);
 				holding = box;
 //				holding.setColor(Color.RED);
-				holding.getColor().a=.4f;
+				holding.getColor().a = .4f;
 //				holding.body.setTransform(holding.body.getWorldCenter(), 0f);
-				RopeJointDef jdef = new RopeJointDef();
+				final RopeJointDef jdef = new RopeJointDef();
 				jdef.bodyA = body;
 				jdef.bodyB = holding.body;
 				jdef.collideConnected = false;
@@ -208,28 +183,28 @@ public class Player extends Entity {
 				jdef.localAnchorB.y = holding.body.getLocalCenter().y;
 				joint = body.getWorld().createJoint(jdef);
 //				holding.body.setTransform(worldCenter, 0f);
-				Array<Fixture> f = holding.body.getFixtureList();
-				for (Fixture af: f) {
+				final Array<Fixture> f = holding.body.getFixtureList();
+				for (final Fixture af : f) {
 					af.setSensor(false);
 				}
 				holding.toFront();
 				toFront();
 			}
 		} else if (joint != null && toggledOn) {
-			Array<Joint> joints = new Array<>();
+			final Array<Joint> joints = new Array<>();
 			body.getWorld().getJoints(joints);
-			for (Joint j: joints) {
+			for (final Joint j : joints) {
 				if (j.equals(joint)) {
 					addAudio(Effect.DROP_IT);
 					body.getWorld().destroyJoint(joint);
 					holding.body.setGravityScale(1f);
-					Array<Fixture> f = holding.body.getFixtureList();
-					for (Fixture af: f) {
+					final Array<Fixture> f = holding.body.getFixtureList();
+					for (final Fixture af : f) {
 						af.setSensor(false);
 					}
 					holding.body.setFixedRotation(false);
 //					holding.setColor(Color.WHITE);
-					holding.getColor().a=1f;
+					holding.getColor().a = 1f;
 				}
 			}
 			holding = null;
@@ -268,7 +243,7 @@ public class Player extends Entity {
 		body.applyLinearImpulse(impulse, worldCenter, true);
 
 		if (gamepad.btn_a && !prev_btn_a) {
-			Vector2 ff = new Vector2(2f, 0f);
+			final Vector2 ff = new Vector2(2f, 0f);
 			switch (lastDir) {
 			case EAST:
 				break;
@@ -282,9 +257,9 @@ public class Player extends Entity {
 				ff.rotate(-90);
 				break;
 			}
-			//ff.add();
-			ArrowGroup arrowGroup = new ArrowGroup();
-			Arrow a = new Arrow();
+			// ff.add();
+			final ArrowGroup arrowGroup = new ArrowGroup();
+			final Arrow a = new Arrow();
 			a.setWorldScale(worldScale);
 			arrowGroup.group.addActor(a);
 			getStage().addActor(arrowGroup.group);
@@ -299,52 +274,239 @@ public class Player extends Entity {
 		prev_btn_a = gamepad.btn_a;
 	}
 
-	final public static int NORTH = 0;
-	final public static int EAST = 1;
-	final public static int WEST = 2;
-	final public static int SOUTH = 3;
-
-	public PlayerInput gamepad = new PlayerInput();
-
-	private AtlasRegion[][] ar;
-
-	private ArrayList<ArrowGroup> arrow_tracker = new ArrayList<>();
-
-	public Player() {
-		super();
-		r.setSeed(0);
-		TextureAtlas atlas = S.getPar().playerAtlas;
-		ar = new AtlasRegion[4][4];
-		for (int ix = 0; ix < 4; ix++) {
-			ar[NORTH][ix] = atlas.findRegion("north-" + ix);
-			ar[EAST][ix] = atlas.findRegion("east-" + ix);
-			ar[WEST][ix] = atlas.findRegion("west-" + ix);
-			ar[SOUTH][ix] = atlas.findRegion("south-" + ix);
+	public void addToPendingScore(final int pendingScore) {
+		synchronized (this) {
+			this.pendingScore += pendingScore;
 		}
-		showAvatar(SOUTH);
-		identity = Entity.PLAYER;
-		setName("Player");
 	}
 
-	
+	public void addToWorld(final TheWorld world) {
+		r.setSeed(theChallenge);
+		final float wx = 32 / worldScale;
+		final float wy = 32 / worldScale;
+		final BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(wx, wy);
+		body = world.getWorld().createBody(bodyDef);
+		setBody(body);
+		body.setUserData(this);
+		body.setFixedRotation(true);
+		body.setLinearVelocity(new Vector2(0f, 0f));
+		body.setLinearDamping(4.5f);
+		body.setAngularDamping(4.5f);
+		showAvatar(lastDir);
+		holding = null;
+		joint = null;
+	}
 
-	private int lastDir = -1;
-	private int lastX = -1;
-	private int lastY = -1;
+	public void badValue_add(final int value) {
+		badAccumulator += value;
+	}
+
+	public void badValue_clear() {
+		badAccumulator = 0;
+	}
+
+	public int badValue_getNext(final int maxFaceValue) {
+		int gbv = 0;
+		if (badAccumulator < 1) {
+			return 0;
+		}
+		if (badAccumulator == 1) {
+			badAccumulator = 0;
+			return 1;
+		}
+		do {
+			if (dieDeck.size == 0) {
+				int sides = 6;
+				if (badAccumulator > 30 && maxFaceValue > 30) {
+					sides = 7;
+				}
+				if (badAccumulator > 100 && maxFaceValue > 100) {
+					sides = 8;
+				}
+				for (int i = 0; i < sides; i++) {
+					dieDeck.add(i + 1);
+				}
+				dieDeck.shuffle();
+			}
+			gbv = dieDeck.removeIndex(0);
+			// convert die face into VALUE
+			if (gbv == 7) {
+				gbv = 20;
+			}
+			if (gbv == 8) {
+				gbv = 80;
+			}
+		} while (gbv > badAccumulator);
+		badAccumulator -= gbv;
+		return gbv;
+	}
+
+	public int badValue_getPending() {
+		return badAccumulator;
+	}
+
+	public boolean badValue_hasPending() {
+		return badAccumulator > 0;
+	}
+
+	public int getPendingScore() {
+		return pendingScore;
+	}
+
+	public int getPendingScoreAndZeroOut() {
+		int r;
+		synchronized (this) {
+			r = pendingScore;
+			pendingScore = 0;
+		}
+		return r;
+	}
+
+	public boolean pendingArrows() {
+		return false;
+	}
+
+	public int pointsInLimbo() {
+		int total = 0;
+		for (int ix = arrow_tracker.size() - 1; ix >= 0; ix--) {
+			total += arrow_tracker.get(ix).accumulator;
+		}
+		return total;
+	}
+
+	private void resetFixtures(final float regionWidth, final float regionHeight) {
+		if (body != null) {
+			final Array<Fixture> f = new Array<>();
+			f.addAll(body.getFixtureList());
+			for (final Fixture fixture : f) {
+				body.destroyFixture(fixture);
+			}
+			f.clear();
+
+			final float w = (regionWidth - 1) / worldScale;
+			final float h = (regionHeight - 1) / worldScale;
+
+			aabb_size.x = w;
+			aabb_size.y = h;
+
+			float rad;
+			if (w < h) {
+				rad = w / 4;
+			} else {
+				rad = h / 4;
+			}
+
+			FixtureDef fDef;
+
+			final CircleShape circle = new CircleShape();
+			circle.setRadius(rad);
+
+			final float div = avatarScale * avatarScale;
+			// TC
+			circle.setPosition(new Vector2(w / 2, rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// BC
+			circle.setPosition(new Vector2(w / 2, h - rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// LC
+			circle.setPosition(new Vector2(rad, h / 2));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// RC
+			circle.setPosition(new Vector2(w - rad, h / 2));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// TL
+			circle.setPosition(new Vector2(rad, rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// TR
+			circle.setPosition(new Vector2(w - rad, rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// BL
+			circle.setPosition(new Vector2(rad, h - rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			// BR
+			circle.setPosition(new Vector2(w - rad, h - rad));
+			fDef = new FixtureDef();
+			fDef.shape = circle;
+			fDef.density = 0.1f / div;
+			fDef.friction = 0;
+			fDef.restitution = 0f;
+			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			body.createFixture(fDef);
+			circle.dispose();
+		}
+	}
 
 	@Override
-	public void setBody(Body body) {
+	public void setBody(final Body body) {
 		super.setBody(body);
-		if (body==null) {
+		if (body == null) {
 			return;
 		}
 		resetFixtures(getWidth(), getHeight());
 		body.setGravityScale(0f);
 	}
 
-	private void showAvatar(int dir) {
+	public void setPendingScore(final int pendingScore) {
+		synchronized (this) {
+			this.pendingScore = pendingScore;
+		}
+	}
+
+	private void showAvatar(final int dir) {
 		if (dir < 0 || dir > 3) {
-			Gdx.app.log(this.getClass().getSimpleName(),"Bad dir: " + dir);
+			Gdx.app.log(this.getClass().getSimpleName(), "Bad dir: " + dir);
 			return;
 		}
 
@@ -363,7 +525,7 @@ public class Player extends Entity {
 		}
 		if (ar[dir][i] != null) {
 			lastDir = dir;
-			TextureRegionDrawable d = new TextureRegionDrawable(ar[dir][i]);
+			final TextureRegionDrawable d = new TextureRegionDrawable(ar[dir][i]);
 			setDrawable(d);
 			final int regionWidth = d.getRegion().getRegionWidth();
 			setWidth(regionWidth);
@@ -373,166 +535,9 @@ public class Player extends Entity {
 			setScale(avatarScale);
 			setOffsetX(-regionWidth / 2);
 			setOffsetY(-regionHeight / 2);
-			resetFixtures(regionWidth*avatarScale, regionHeight*avatarScale);
+			resetFixtures(regionWidth * avatarScale, regionHeight * avatarScale);
 		} else {
-			Gdx.app.log(this.getClass().getSimpleName(),"DIR IS NULL: " + dir + ", i: " + i);
+			Gdx.app.log(this.getClass().getSimpleName(), "DIR IS NULL: " + dir + ", i: " + i);
 		}
-	}
-
-	private void resetFixtures(final float regionWidth, final float regionHeight) {
-		if (body != null) {
-			Array<Fixture> f = new Array<>();
-			f.addAll(body.getFixtureList());
-			for (Fixture fixture: f) {
-				body.destroyFixture(fixture);
-			}
-			f.clear();
-
-			float w = (regionWidth - 1) / worldScale;
-			float h = (regionHeight - 1) / worldScale;
-
-			aabb_size.x = w;
-			aabb_size.y = h;
-
-			float rad;
-			if (w < h) {
-				rad = w / 4;
-			} else {
-				rad = h / 4;
-			}
-
-			FixtureDef fDef;
-
-			CircleShape circle = new CircleShape();
-			circle.setRadius(rad);
-
-			float div=avatarScale*avatarScale;
-			// TC
-			circle.setPosition(new Vector2(w / 2, rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// BC
-			circle.setPosition(new Vector2(w / 2, h - rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// LC
-			circle.setPosition(new Vector2(rad, h / 2));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// RC
-			circle.setPosition(new Vector2(w - rad, h / 2));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// TL
-			circle.setPosition(new Vector2(rad, rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// TR
-			circle.setPosition(new Vector2(w - rad, rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// BL
-			circle.setPosition(new Vector2(rad, h - rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			// BR
-			circle.setPosition(new Vector2(w - rad, h - rad));
-			fDef = new FixtureDef();
-			fDef.shape = circle;
-			fDef.density = 0.1f/div;
-			fDef.friction = 0;
-			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
-			body.createFixture(fDef);
-			circle.dispose();
-		}
-	}
-
-	public Player(AtlasRegion ar) {
-		super(ar);
-		r.setSeed(0);
-	}
-
-	public void addToWorld(TheWorld world) {
-		r.setSeed(theChallenge);
-		float wx = 32 / worldScale;
-		float wy = 32 / worldScale;
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyType.DynamicBody;
-		bodyDef.position.set(wx, wy);
-		body = world.getWorld().createBody(bodyDef);
-		setBody(body);
-		body.setUserData(this);
-		body.setFixedRotation(true);
-		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(4.5f);
-		body.setAngularDamping(4.5f);
-		showAvatar(lastDir);
-		holding = null;
-		joint = null;
-	}
-	public int getPendingScore() {
-		return pendingScore;
-	}
-	public void setPendingScore(int pendingScore) {
-		synchronized (this) {
-			this.pendingScore = pendingScore;
-		}
-	}
-	public void addToPendingScore(int pendingScore) {
-		synchronized (this) {
-			this.pendingScore+=pendingScore;
-		}
-	}
-	public int getPendingScoreAndZeroOut() {
-		int r;
-		synchronized (this) {
-			r=pendingScore;
-			pendingScore=0;
-		}
-		return r;
 	}
 }

@@ -10,38 +10,39 @@ public class StageBase extends Stage {
 		super();
 	}
 
-	public StageBase(Viewport viewport, Batch batch) {
-		super(viewport, batch);
-	}
-
-	public StageBase(Viewport viewport) {
+	public StageBase(final Viewport viewport) {
 		super(viewport);
 	}
 
-	@Override
-	public boolean keyUp(int keyCode) {
-		return super.keyUp(keyCode);
+	public StageBase(final Viewport viewport, final Batch batch) {
+		super(viewport, batch);
 	}
-	
+
 	@Override
-	public boolean keyDown(int keyCode) {
+	public boolean keyDown(final int keyCode) {
 		return super.keyDown(keyCode);
 	}
+
 	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+	public boolean keyUp(final int keyCode) {
+		return super.keyUp(keyCode);
+	}
+
+	@Override
+	public boolean touchDown(final int screenX, final int screenY, final int pointer, final int button) {
 		return super.touchDown(screenX, screenY, pointer, button);
 	}
 
 	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		boolean result=super.touchUp(screenX, screenY, pointer, button);
+	public boolean touchDragged(final int screenX, final int screenY, final int pointer) {
+		final boolean result = super.touchDragged(screenX, screenY, pointer);
 		return result;
 	}
 
 	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		boolean result=super.touchDragged(screenX, screenY, pointer);
+	public boolean touchUp(final int screenX, final int screenY, final int pointer, final int button) {
+		final boolean result = super.touchUp(screenX, screenY, pointer, button);
 		return result;
 	}
-	
+
 }

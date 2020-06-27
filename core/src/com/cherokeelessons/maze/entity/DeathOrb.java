@@ -20,18 +20,36 @@ import com.cherokeelessons.maze.game.TheWorld.AddOrphan;
 public class DeathOrb extends Entity {
 
 	private final class MyRayCastCallback implements RayCastCallback {
-		private float fraction=1f;;
-		private Vector2 point=new Vector2();
-		private Entity entity=null;
-		private Vector2 normal=new Vector2();
-		private MyRayCastCallback() {}
-		
+		private float fraction = 1f;
+		private final Vector2 point = new Vector2();
+		private Entity entity = null;
+		private final Vector2 normal = new Vector2();
+
+		private MyRayCastCallback() {
+		}
+
+		public Entity getEntity() {
+			return entity;
+		}
+
+		public float getFraction() {
+			return fraction;
+		}
+
+		public Vector2 getNormal() {
+			return normal;
+		}
+
+		public Vector2 getPoint() {
+			return new Vector2(point);
+		}
+
 		@Override
-		public float reportRayFixture(Fixture fixture, Vector2 newPoint,
-				Vector2 newNormal, float newFraction) {
-			Object o = fixture.getBody().getUserData();
+		public float reportRayFixture(final Fixture fixture, final Vector2 newPoint, final Vector2 newNormal,
+				final float newFraction) {
+			final Object o = fixture.getBody().getUserData();
 			if (o != null && o instanceof Entity) {
-				Entity newEntity = (Entity) o;
+				final Entity newEntity = (Entity) o;
 				if (newEntity.identity != Entity.FLOOR) {
 					if (entity == null || fraction > newFraction) {
 						entity = (Entity) o;
@@ -45,44 +63,56 @@ public class DeathOrb extends Entity {
 			return fraction;
 		}
 
-		public float getFraction() {
-			return fraction;
-		}
-		public Vector2 getPoint() {
-			return new Vector2(point);
-		}
-
-		public Entity getEntity() {
-			return entity;
-		}
-
 		public void reset() {
-			fraction=1f;
+			fraction = 1f;
 			point.set(0f, 0f);
-			entity=null;
+			entity = null;
 			normal.set(0f, 0f);
-		}
-
-		public Vector2 getNormal() {
-			return normal;
 		}
 	}
 
 	private static AtlasRegion[] atlas = null;
-	private TextureRegionDrawable[] trd = null;
-	final private long totalFrames = 64;
-	final private long totalAnimTime = 2600;
 	final private static long lifeSpan = 64000;
+
+	public static AtlasRegion[] getAtlas() {
+		return atlas;
+	}
+
 	public static long getLifeSpan() {
 		return lifeSpan;
 	}
 
-	private long expires = 0;
+	public static void setAtlas(final AtlasRegion[] atlas) {
+		DeathOrb.atlas = atlas;
+	}
 
-	public DeathOrb(World world, float worldScale, Vector2 worldPos,
-			int accumulator) {
+	private TextureRegionDrawable[] trd = null;
+
+	final private long totalFrames = 64;
+
+	final private long totalAnimTime = 2600;
+
+	private long expires = 0;
+	private float finalRad = 0f;
+	private float activeRad = 0f;
+
+	private final float realScale = 1f;
+
+	private int activeFrame = 0;
+
+	private int lastFrame = -1;
+	final MyRayCastCallback report_ray_cb = new MyRayCastCallback();
+
+	boolean[] wasWall = new boolean[4];
+	private int impulseDir;
+	private final Array<Entity> ray_entity = new Array<>();
+	private final Array<Float> ray_fraction = new Array<>();
+	private final Array<Vector2> ray_point = new Array<>();
+	private final Array<Vector2> ray_normal = new Array<>();
+
+	public DeathOrb(final World world, final float worldScale, final Vector2 worldPos, final int accumulator) {
 		super();
-		identity=Entity.DEATH_ORB;
+		identity = Entity.DEATH_ORB;
 		getColor().a = 0f;
 		setWorldScale(worldScale);
 		setName("DeathOrb");
@@ -97,72 +127,8 @@ public class DeathOrb extends Entity {
 		expires = System.currentTimeMillis() + lifeSpan;
 	}
 
-	private float finalRad = 0f;
-	private float activeRad = 0f;
-	private float realScale = 1f;
-
-	public void addToWorld(World world, Vector2 worldPos) {
-		start = System.currentTimeMillis();
-		finalRad = .45f * (getWidth() / 2) / worldScale;
-		activeRad = finalRad / 2f;
-		BodyDef bodyDef = new BodyDef();
-		bodyDef.type = BodyType.DynamicBody;
-		bodyDef.position.set(worldPos);
-
-		Body body = world.createBody(bodyDef);
-		setBody(body);
-		resetFixtures(activeRad, body);
-		body.setUserData(this);
-		body.setBullet(true);
-		body.setFixedRotation(true);
-		body.setLinearDamping(1f);
-		body.setAngularDamping(1f);
-//		body.applyAngularImpulse(.01f);
-		body.setGravityScale(0f);
-		setOffsetX(-getWidth() / 2);
-		setOffsetY(-getHeight() / 2);
-		setOriginX(getWidth() / 2);
-		setOriginY(getHeight() / 2);
-		body.setActive(true);
-		body.setLinearVelocity(0f, 0f);
-	}
-
-	private void resetFixtures(float rad, Body body) {
-		Array<Fixture> f = new Array<>();
-		f.addAll(body.getFixtureList());
-		for (Fixture fix : f) {
-			body.destroyFixture(fix);
-		}
-		CircleShape circle;
-		FixtureDef fDef;
-		Vector2 offset=new Vector2(rad*2, 0);
-		
-		circle = new CircleShape();
-		circle.setRadius(rad);
-		fDef = new FixtureDef();
-		fDef.isSensor = false;
-		fDef.density = 1f;
-		fDef.friction = 0f;
-		fDef.restitution = 1f;
-		fDef.shape = circle;
-		fDef.filter.categoryBits = TheWorld.TYPE_ENEMY;
-		fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER ^ TheWorld.TYPE_ENEMY);
-		body.createFixture(fDef);
-		circle.dispose();
-	}
-
-	private int activeFrame = 0;
-	private int lastFrame = -1;
-
-	final MyRayCastCallback report_ray_cb = new MyRayCastCallback();
-	boolean[] wasWall=new boolean[4];
-	private int impulseDir;
-	private Array<Entity> ray_entity=new Array<>();
-	private Array<Float> ray_fraction=new Array<>();
-	private Array<Vector2> ray_point=new Array<>();
-	private Array<Vector2> ray_normal=new Array<>();
 	@Override
-	public void act(float delta) {
+	public void act(final float delta) {
 		if (System.currentTimeMillis() > expires) {
 			remove(true);
 			return;
@@ -174,7 +140,7 @@ public class DeathOrb extends Entity {
 			start = System.currentTimeMillis() - tick;
 		}
 		activeFrame = (int) (tick * totalFrames / totalAnimTime);
-		float newAlpha = (expires - System.currentTimeMillis()) / (float) lifeSpan;
+		final float newAlpha = (expires - System.currentTimeMillis()) / (float) lifeSpan;
 		getColor().a = newAlpha * .65f + .35f;
 		if (lastFrame != activeFrame) {
 			setDrawable(trd[activeFrame]);
@@ -200,9 +166,9 @@ public class DeathOrb extends Entity {
 		ray_fraction.clear();
 		ray_point.clear();
 		ray_normal.clear();
-		Vector2 endOfRay = new Vector2();
+		final Vector2 endOfRay = new Vector2();
 		// e, n, w, s
-		for (float len = finalRad+1.75f; len < 10f; len += 2f) {
+		for (float len = finalRad + 1.75f; len < 10f; len += 2f) {
 			for (int a = 0; a < 360; a += 30) {
 				endOfRay.set(len, 0f);
 				endOfRay.setAngle(a);
@@ -220,41 +186,41 @@ public class DeathOrb extends Entity {
 				break;
 			}
 		}
-		//0-e, 1-n, 2-w, 3-s
-		boolean[] isWall=new boolean[4];
-		isWall[0]=false;
-		isWall[1]=false;
-		isWall[2]=false;
-		isWall[3]=false;
-		Vector2 cpos = new Vector2();
-		final int gap=30;
+		// 0-e, 1-n, 2-w, 3-s
+		final boolean[] isWall = new boolean[4];
+		isWall[0] = false;
+		isWall[1] = false;
+		isWall[2] = false;
+		isWall[3] = false;
+		final Vector2 cpos = new Vector2();
+		final int gap = 30;
 //		setColor(Color.WHITE);
-		for (int ix=0; ix<ray_entity.size; ix++) {
-			Entity e=ray_entity.get(ix);
+		for (int ix = 0; ix < ray_entity.size; ix++) {
+			final Entity e = ray_entity.get(ix);
 			cpos.set(ray_point.get(ix));
 			cpos.sub(worldCenter);
-			float a = cpos.angle();
-			if (e.identity==Entity.EXPLOSION) {
-				Vector2 kill=new Vector2(body.getMass()*.5f, 0f);
-				kill.setAngle(cpos.angle()+90f);
+			final float a = cpos.angle();
+			if (e.identity == Entity.EXPLOSION) {
+				final Vector2 kill = new Vector2(body.getMass() * .5f, 0f);
+				kill.setAngle(cpos.angle() + 90f);
 				body.applyLinearImpulse(kill, worldCenter, true);
 				continue;
 			}
-			if (e.identity==Entity.PLAYER) {
-				Vector2 kill=new Vector2(body.getMass()*.5f, 0f);
+			if (e.identity == Entity.PLAYER) {
+				final Vector2 kill = new Vector2(body.getMass() * .5f, 0f);
 				kill.setAngle(cpos.angle());
 				body.applyLinearImpulse(kill, worldCenter, true);
 				continue;
 			}
-			if (e.identity==Entity.BLOCK) {
-				Vector2 kill=new Vector2(body.getMass()*.51f, 0f);
+			if (e.identity == Entity.BLOCK) {
+				final Vector2 kill = new Vector2(body.getMass() * .51f, 0f);
 				kill.setAngle(cpos.angle());
 				body.applyLinearImpulse(kill, worldCenter, true);
 				continue;
 			}
-			if (e.identity==Entity.DEATH_ORB) {
-				Vector2 runAway=new Vector2(body.getMass()*2f, 0f);
-				runAway.setAngle(cpos.angle()-90f);
+			if (e.identity == Entity.DEATH_ORB) {
+				final Vector2 runAway = new Vector2(body.getMass() * 2f, 0f);
+				runAway.setAngle(cpos.angle() - 90f);
 				body.applyLinearImpulse(runAway, worldCenter, true);
 			}
 			if (e.identity == Entity.WALL || e.identity != Entity.DEATH_ORB) {
@@ -272,29 +238,29 @@ public class DeathOrb extends Entity {
 				}
 			}
 		}
-		boolean maybeChangeDir=false;
-		for (int ix=0; ix<4; ix++) {
-			if (wasWall[ix]!=isWall[ix]) {
-				maybeChangeDir=true;
+		boolean maybeChangeDir = false;
+		for (int ix = 0; ix < 4; ix++) {
+			if (wasWall[ix] != isWall[ix]) {
+				maybeChangeDir = true;
 			}
-			wasWall[ix]=isWall[ix];
+			wasWall[ix] = isWall[ix];
 		}
-		
-		Array<Integer> dir=new Array<>();
-		if (isWall[impulseDir] || maybeChangeDir && MathUtils.random(5)==0) {
-			for (int ix=0; ix<4; ix++) {
+
+		final Array<Integer> dir = new Array<>();
+		if (isWall[impulseDir] || maybeChangeDir && MathUtils.random(5) == 0) {
+			for (int ix = 0; ix < 4; ix++) {
 				if (!isWall[ix]) {
 					dir.add(ix);
 				}
 			}
-			if (dir.size>0) {
-				if (dir.size>1) {
-					int oppDir=(impulseDir+2)%4;
+			if (dir.size > 0) {
+				if (dir.size > 1) {
+					final int oppDir = (impulseDir + 2) % 4;
 					dir.removeValue(oppDir, false);
 				}
-				impulseDir=dir.random();
+				impulseDir = dir.random();
 //				body.setLinearVelocity(0f, 0f);
-				Vector2 oldVector=body.getLinearVelocity();
+				final Vector2 oldVector = body.getLinearVelocity();
 				oldVector.scl(.35f);
 				body.setLinearVelocity(oldVector);
 //				body.applyLinearImpulse(oldVector, worldCenter);
@@ -303,13 +269,13 @@ public class DeathOrb extends Entity {
 //		if (body.getLinearVelocity().len() > body.getMass()*20f) {
 //			body.setLinearVelocity(0f, 0f);
 //		}
-		if (body.getLinearVelocity().len() < body.getMass()*10f) {
+		if (body.getLinearVelocity().len() < body.getMass() * 10f) {
 			Vector2 i;
 			i = new Vector2(body.getMass(), 0f).scl(.3f);
 			i.rotate(impulseDir * 90f);
 			body.applyLinearImpulse(i, worldCenter, true);
 		}
-		
+
 //		if (body.getLinearVelocity().len() < .01f) {
 //			Vector2 i;
 //			i = new Vector2(body.getMass(), 0f);
@@ -407,19 +373,20 @@ public class DeathOrb extends Entity {
 //				break;
 //			} while (false);
 //		}
-		for (int ix=0; ix<collidesWith.size; ix++) {
+		for (int ix = 0; ix < collidesWith.size; ix++) {
 			final Entity e = collidesWith.get(ix);
-			if (e.identity==Entity.BLOCK) {
+			if (e.identity == Entity.BLOCK) {
 				Gdx.app.postRunnable(new Runnable() {
-					final float scale=worldScale;
-					final World world=DeathOrb.this.body.getWorld();
-					final Vector2 vel=new Vector2().set(body.getLinearVelocity());
-					final Vector2 pos=worldCenter;
+					final float scale = worldScale;
+					final World world = DeathOrb.this.body.getWorld();
+					final Vector2 vel = new Vector2().set(body.getLinearVelocity());
+					final Vector2 pos = worldCenter;
+
 					@Override
 					public void run() {
-						AddOrphan orphan=new AddOrphan();
-						ArrowGroup arrowGroup = orphan.arrowGroup;
-						BoomGenerate bg = new BoomGenerate();
+						final AddOrphan orphan = new AddOrphan();
+						final ArrowGroup arrowGroup = orphan.arrowGroup;
+						final BoomGenerate bg = new BoomGenerate();
 						bg.setWorld(world);
 						bg.setWorldScale(scale);
 						bg.setCount(7);
@@ -436,11 +403,54 @@ public class DeathOrb extends Entity {
 		}
 	}
 
-	public static AtlasRegion[] getAtlas() {
-		return atlas;
+	public void addToWorld(final World world, final Vector2 worldPos) {
+		start = System.currentTimeMillis();
+		finalRad = .45f * (getWidth() / 2) / worldScale;
+		activeRad = finalRad / 2f;
+		final BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DynamicBody;
+		bodyDef.position.set(worldPos);
+
+		final Body body = world.createBody(bodyDef);
+		setBody(body);
+		resetFixtures(activeRad, body);
+		body.setUserData(this);
+		body.setBullet(true);
+		body.setFixedRotation(true);
+		body.setLinearDamping(1f);
+		body.setAngularDamping(1f);
+//		body.applyAngularImpulse(.01f);
+		body.setGravityScale(0f);
+		setOffsetX(-getWidth() / 2);
+		setOffsetY(-getHeight() / 2);
+		setOriginX(getWidth() / 2);
+		setOriginY(getHeight() / 2);
+		body.setActive(true);
+		body.setLinearVelocity(0f, 0f);
 	}
 
-	public static void setAtlas(AtlasRegion[] atlas) {
-		DeathOrb.atlas = atlas;
+	private void resetFixtures(final float rad, final Body body) {
+		final Array<Fixture> f = new Array<>();
+		f.addAll(body.getFixtureList());
+		for (final Fixture fix : f) {
+			body.destroyFixture(fix);
+		}
+		CircleShape circle;
+		FixtureDef fDef;
+		final Vector2 offset = new Vector2(rad * 2, 0);
+
+		circle = new CircleShape();
+		circle.setRadius(rad);
+		fDef = new FixtureDef();
+		fDef.isSensor = false;
+		fDef.density = 1f;
+		fDef.friction = 0f;
+		fDef.restitution = 1f;
+		fDef.shape = circle;
+		fDef.filter.categoryBits = TheWorld.TYPE_ENEMY;
+		fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER
+				^ TheWorld.TYPE_ENEMY);
+		body.createFixture(fDef);
+		circle.dispose();
 	}
 }

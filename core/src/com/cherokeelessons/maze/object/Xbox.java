@@ -40,8 +40,8 @@ public class Xbox {
 				AXIS_RIGHT_X = 3;
 				AXIS_RIGHT_Y = 4;
 				BUTTON_R2 = 5;
-				AXIS_LEFT_TRIGGER=2;
-				AXIS_RIGHT_TRIGGER=5;
+				AXIS_LEFT_TRIGGER = 2;
+				AXIS_RIGHT_TRIGGER = 5;
 				// we throw these back to POV for consistent processing!
 				DPAD_AXIS_X = 6;
 				DPAD_AXIS_Y = 7;
@@ -57,8 +57,8 @@ public class Xbox {
 				BUTTON_X = 99;
 				BUTTON_Y = 100;
 				BUTTON_B = 97;
-				//pov moved dpad index
-				DPAD_POV=0;
+				// pov moved dpad index
+				DPAD_POV = 0;
 				break set;
 			}
 			if (Gdx.app.getType().equals(ApplicationType.Desktop)) {
@@ -72,8 +72,8 @@ public class Xbox {
 					BUTTON_R2 = 5;
 					DPAD_AXIS_X = -1;
 					DPAD_AXIS_Y = -2;
-					AXIS_LEFT_TRIGGER=2;
-					AXIS_RIGHT_TRIGGER=5;
+					AXIS_LEFT_TRIGGER = 2;
+					AXIS_RIGHT_TRIGGER = 5;
 					// via onButton
 					BUTTON_L1 = 4;
 					BUTTON_L3 = 9;
@@ -86,8 +86,8 @@ public class Xbox {
 					BUTTON_X = 2;
 					BUTTON_Y = 3;
 					BUTTON_B = 1;
-					//pov moved dpad index
-					DPAD_POV=0;
+					// pov moved dpad index
+					DPAD_POV = 0;
 					break set;
 				}
 				if (OS.isWindows) {
@@ -100,8 +100,8 @@ public class Xbox {
 					BUTTON_R2 = 5;
 					DPAD_AXIS_X = -1;
 					DPAD_AXIS_Y = -2;
-					AXIS_LEFT_TRIGGER=2;
-					AXIS_RIGHT_TRIGGER=5;
+					AXIS_LEFT_TRIGGER = 2;
+					AXIS_RIGHT_TRIGGER = 5;
 					// via onButton
 					BUTTON_L1 = 4;
 					BUTTON_L3 = 9;
@@ -114,8 +114,8 @@ public class Xbox {
 					BUTTON_X = 2;
 					BUTTON_Y = 3;
 					BUTTON_B = 1;
-					//pov moved dpad index
-					DPAD_POV=0;
+					// pov moved dpad index
+					DPAD_POV = 0;
 					break set;
 				}
 			}
@@ -128,8 +128,8 @@ public class Xbox {
 			BUTTON_R2 = 5;
 			DPAD_AXIS_X = -1;
 			DPAD_AXIS_Y = -2;
-			AXIS_LEFT_TRIGGER=2;
-			AXIS_RIGHT_TRIGGER=5;
+			AXIS_LEFT_TRIGGER = 2;
+			AXIS_RIGHT_TRIGGER = 5;
 			// via onButton
 			BUTTON_L1 = 4;
 			BUTTON_L3 = 9;
@@ -142,8 +142,8 @@ public class Xbox {
 			BUTTON_X = 2;
 			BUTTON_Y = 3;
 			BUTTON_B = 1;
-			//pov moved dpad index
-			DPAD_POV=0;
+			// pov moved dpad index
+			DPAD_POV = 0;
 		}
 	}
 	public static final int BUTTON_BACK;

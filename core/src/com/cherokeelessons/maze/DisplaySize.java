@@ -3,72 +3,75 @@ package com.cherokeelessons.maze;
 public enum DisplaySize {
 	_240p, _480p, _720p, _1080p;
 
-	public Resolution size() {
-		Resolution r=new Resolution();
+	public static class Resolution {
+		public int w = 0;
+		public int h = 0;
+	}
+
+	public int height() {
+		int h = 360;
 		switch (this) {
 		case _1080p:
-			r.w=1920;
-			r.h=1080;
+			h = 1080;
 			break;
 		case _720p:
-			r.w=1280;
-			r.h=720;
+			h = 720;
 			break;
 		case _480p:
-			r.w=853;
-			r.h=480;
+			h = 480;
 			break;
 		case _240p:
-			r.w=640;
-			r.h=360;
+			h = 360;
+			break;
+		default:
+			break;
+		}
+		return h;
+	}
+
+	public Resolution size() {
+		final Resolution r = new Resolution();
+		switch (this) {
+		case _1080p:
+			r.w = 1920;
+			r.h = 1080;
+			break;
+		case _720p:
+			r.w = 1280;
+			r.h = 720;
+			break;
+		case _480p:
+			r.w = 853;
+			r.h = 480;
+			break;
+		case _240p:
+			r.w = 640;
+			r.h = 360;
 			break;
 		default:
 			break;
 		}
 		return r;
 	}
-	public static class Resolution {
-		public int w=0;
-		public int h=0;
-	}
+
 	public int width() {
-		int w=640;
+		int w = 640;
 		switch (this) {
 		case _1080p:
-			w=1920;
+			w = 1920;
 			break;
 		case _720p:
-			w=1280;
+			w = 1280;
 			break;
 		case _480p:
-			w=853;
+			w = 853;
 			break;
 		case _240p:
-			w=640;
+			w = 640;
 			break;
 		default:
 			break;
 		}
 		return w;
-	}
-	public int height() {
-		int h=360;
-		switch (this) {
-		case _1080p:
-			h=1080;
-			break;
-		case _720p:
-			h=720;
-			break;
-		case _480p:
-			h=480;
-			break;
-		case _240p:
-			h=360;
-			break;
-		default:
-			break;
-		}
-		return h;
 	}
 }

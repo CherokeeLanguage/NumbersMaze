@@ -16,142 +16,86 @@ import com.cherokeelessons.maze.Effect.DoAudioEvent;
 import com.cherokeelessons.maze.NumbersMaze;
 
 public class Entity extends Image {
-	
-	public static final int OTHER=-1;
-	public static final int FLOOR=0;
-	public static final int WALL=1;
-	public static final int BLOCK=2;
-	public static final int ARROW=4;
-	public static final int PORTAL=5;
-	public static final int EXPLOSION=6;
+
+	public static class Collides {
+		Entity e = null;
+		final Vector2 pos = new Vector2();
+	}
+
+	public static final int OTHER = -1;
+	public static final int FLOOR = 0;
+	public static final int WALL = 1;
+	public static final int BLOCK = 2;
+	public static final int ARROW = 4;
+	public static final int PORTAL = 5;
+	public static final int EXPLOSION = 6;
 	public static final int PLAYER = 7;
 	public static final int DEATH_ORB = 8;
+
 	public static final int POINTS_BLOCK = 9;
-	
 	protected long start;
 	public int value = 0;
 	public int identity = Entity.OTHER;
-	public String tag = "";
 
-	public static class Collides {
-		Entity e=null;
-		final Vector2 pos=new Vector2();
-	}
+	public String tag = "";
 	final protected Array<Entity> collidesWith = new Array<>();
 	final protected Array<Vector2> collidesWithPos = new Array<>();
-	
-	final protected Array<Integer> audioQueue=new Array<>();
-	
-	public void audioClear() {
-		audioQueue.clear();
-	}
 
-	public void addCollision(Entity e, Vector2 p) {
-		collidesWith.add(e);
-		collidesWithPos.add(p);
-	}
-
-	public void clearCollides() {
-		collidesWith.clear();
-		collidesWithPos.clear();
-	}
+	final protected Array<Integer> audioQueue = new Array<>();
 
 	protected Body body = null;
 
-	public Body getBody() {
-		return body;
-	}
-
-	public void setBody(Body body) {
-		this.body = body;
-		if (body==null) {
-			return;
-		}
-		body.setSleepingAllowed(true);
-		body.setUserData(this);
-		body.setBullet(true);
-		worldCenter.set(body.getWorldCenter());
-		worldStart.set(getWorldCenter());
-	}
-
-	public Vector2 getWorldCenter() {
-		return worldCenter;
-	}
-
 	protected final Vector2 offset = new Vector2();
+
 	protected float worldScale = 1;
+
+	protected Rectangle cull = null;
+
+	final protected Vector2 worldCenter = new Vector2(0, 0);
+
+	Array<Action> actions;
+
+	protected boolean doCullCheck = true;
+
+	long sleepTime = 0;
+	Vector2 worldStart = new Vector2();
+
+	private boolean forceLayout = true;
+
+	private boolean isCulled = false;
 
 	public Entity() {
 		super();
-		actions=getActions();
+		actions = getActions();
 		audioClear();
 		setName("Entity");
-		offset.x=0;
-		offset.y=0;
+		offset.x = 0;
+		offset.y = 0;
 		setLayoutEnabled(false);
 	}
 
-	public Entity(AtlasRegion ar) {
+	public Entity(final AtlasRegion ar) {
 		super(ar);
-		actions=getActions();
+		actions = getActions();
 		audioClear();
 		setName("Entity");
-		offset.x=0;
-		offset.y=0;
+		offset.x = 0;
+		offset.y = 0;
 		setLayoutEnabled(false);
 	}
 
-	public Entity(TiledDrawable tiledDrawable) {
+	public Entity(final TiledDrawable tiledDrawable) {
 		super(tiledDrawable);
-		actions=getActions();
+		actions = getActions();
 		audioClear();
 		setName("TiledEntity");
-		offset.x=0;
-		offset.y=0;
+		offset.x = 0;
+		offset.y = 0;
 		setLayoutEnabled(false);
 	}
 
-	public Rectangle getCull() {
-		return cull;
-	}
-
-	/**
-	 * If this object's world position is not in these bounds, don't draw it.
-	 * Should point to a commonly shared Rectangle object that is updated at a
-	 * single point before act is called.
-	 * 
-	 * @param cull
-	 */
-	public void setCull(Rectangle cull) {
-		this.cull = cull;
-	}
-
-	protected Rectangle cull = null;
-	final protected Vector2 worldCenter=new Vector2(0, 0);
-	
 	@Override
-	public void draw(Batch batch, float parentAlpha) {
-		if (isCulled()) {
-			return;
-		}
-		super.draw(batch, parentAlpha);
-	}
-	Array<Action> actions;
-	public void doActions(float delta) {
-		for (int i = 0, n = actions.size; i < n; i++) {
-			Action action = actions.get(i);
-			if (action.act(delta)) {
-				actions.removeIndex(i);
-				action.setActor(null);
-				i--;
-				n--;
-			}
-		}
-	}
-
-	protected boolean doCullCheck=true;
-	@Override
-	public void act(float delta) {
+	public void act(final float delta) {
 		doActions(delta);
 		updatePosition();
 		if (doCullCheck) {
@@ -159,53 +103,29 @@ public class Entity extends Image {
 		}
 	}
 
-	long sleepTime=0;
-	Vector2 worldStart=new Vector2();
-
-	private void playAudio() {
-		if (audioQueue.size>0) {
-			DoAudioEvent e = new DoAudioEvent();
-			e.audioQueue.addAll(audioQueue);
-			e.location.set(worldCenter);
-			audioQueue.clear();
-			NumbersMaze.post(e);
-		}
-	}
-	private boolean forceLayout=true;
-	public void updatePosition(boolean forceLayout) {
-		this.forceLayout=forceLayout;
-		updatePosition();
-	}
-	public void updatePosition(){
-		boolean doLayout=false;
-		if (body != null && (body.isAwake()||forceLayout)) {
-			worldCenter.set(body.getWorldCenter());
-			float angle = body.getAngle() * MathUtils.radiansToDegrees;
-			float newX = worldCenter.x * worldScale + getOffsetX();
-			float newY = worldCenter.y * worldScale + getOffsetY();
-			if ((int)getX() != (int)newX) {
-				setX(newX);
-				doLayout = true;
+	public void addAudio(final int s) {
+		audioQueue.add(s);
+		Gdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				Entity.this.playAudio();
 			}
-			if ((int)getY() != (int)newY) {
-				setY(newY);
-				doLayout = true;
-			}
-			if ((int)getRotation() != (int)angle) {
-				setRotation(angle);
-				doLayout = true;
-			}
-			if (forceLayout) {
-				doLayout=true;
-				forceLayout=false;
-			}
-		}
-		if (doLayout) {
-			layout();
-		}
+		});
 	}
 
-	private boolean isCulled=false;
+	public void addCollision(final Entity e, final Vector2 p) {
+		collidesWith.add(e);
+		collidesWithPos.add(p);
+	}
+
+	public void audioClear() {
+		audioQueue.clear();
+	}
+
+	public void clearCollides() {
+		collidesWith.clear();
+		collidesWithPos.clear();
+	}
 
 	public void cullCheck() {
 		if (body == null) {
@@ -226,110 +146,198 @@ public class Entity extends Image {
 		}
 	}
 
-	public void addAudio(int s) {
-		audioQueue.add(s);
-		Gdx.app.postRunnable(new Runnable() {
-			@Override
-			public void run() {
-				Entity.this.playAudio();
+	public void doActions(final float delta) {
+		for (int i = 0, n = actions.size; i < n; i++) {
+			final Action action = actions.get(i);
+			if (action.act(delta)) {
+				actions.removeIndex(i);
+				action.setActor(null);
+				i--;
+				n--;
 			}
-		});
+		}
 	}
 
-	public float getOffsetX() {
-		return offset.x;
+	@Override
+	public void draw(final Batch batch, final float parentAlpha) {
+		if (isCulled()) {
+			return;
+		}
+		super.draw(batch, parentAlpha);
 	}
 
-	public void setOffsetX(float offsetX) {
-		offset.x = offsetX;
+	public Array<Integer> getAudioQueue() {
+		return audioQueue;
 	}
 
-	public float getOffsetY() {
-		return offset.y;
+	public Body getBody() {
+		return body;
 	}
 
-	public void setOffsetY(float offsetY) {
-		offset.y = offsetY;
+	public Array<Entity> getCollidesWith() {
+		return collidesWith;
 	}
 
-	public void setOffset(Vector2 v) {
-		offset.set(v);
+	public Rectangle getCull() {
+		return cull;
 	}
 
 	public Vector2 getOffset() {
 		return offset;
 	}
 
+	public float getOffsetX() {
+		return offset.x;
+	}
+
+	public float getOffsetY() {
+		return offset.y;
+	}
+
+	public Vector2 getWorldCenter() {
+		return worldCenter;
+	}
+
 	public float getWorldScale() {
 		return worldScale;
-	}
-
-	public void setWorldScale(float worldScale) {
-		this.worldScale = worldScale;
-	}
-	
-	@Override
-	public boolean remove() {
-		clearActions();
-		return super.remove();
-	}
-
-	public boolean remove(boolean fromWorldAlso) {
-		if (fromWorldAlso) {
-			if (body!=null) {
-				World world=body.getWorld();
-//				for (Fixture f: body.getFixtureList()) {
-//					f.setUserData(null);
-//				}
-//				body.setUserData(null);
-				world.destroyBody(body);
-				body=null;
-			}
-		}
-		return remove();
-	}
-	
-	
-	
-	public void setWorldRotation(float degrees) {
-		if (body==null) {
-			return;
-		}
-		body.setTransform(body.getWorldCenter(), degrees*MathUtils.degreesToRadians);
-	}
-	public void setWorldPosition(Vector2 pos) {
-		if (body==null) {
-			return;
-		}
-		body.setTransform(pos, 0f);
-	}
-	
-	public void setWorldPosition(float x, float y) {
-		if (body==null) {
-			return;
-		}
-		body.setTransform(x, y, 0f);
-	}
-
-	public  Array<Integer> getAudioQueue() {
-		return audioQueue;
-	}
-
-	public void setAudioQueue(Array<Integer> audioQueue) {
-		this.audioQueue.clear();
-		this.audioQueue.addAll(audioQueue);
 	}
 
 	public boolean isCulled() {
 		return isCulled;
 	}
 
-	public void setCulled(boolean isCulled) {
+	private void playAudio() {
+		if (audioQueue.size > 0) {
+			final DoAudioEvent e = new DoAudioEvent();
+			e.audioQueue.addAll(audioQueue);
+			e.location.set(worldCenter);
+			audioQueue.clear();
+			NumbersMaze.post(e);
+		}
+	}
+
+	@Override
+	public boolean remove() {
+		clearActions();
+		return super.remove();
+	}
+
+	public boolean remove(final boolean fromWorldAlso) {
+		if (fromWorldAlso) {
+			if (body != null) {
+				final World world = body.getWorld();
+//				for (Fixture f: body.getFixtureList()) {
+//					f.setUserData(null);
+//				}
+//				body.setUserData(null);
+				world.destroyBody(body);
+				body = null;
+			}
+		}
+		return remove();
+	}
+
+	public void setAudioQueue(final Array<Integer> audioQueue) {
+		this.audioQueue.clear();
+		this.audioQueue.addAll(audioQueue);
+	}
+
+	public void setBody(final Body body) {
+		this.body = body;
+		if (body == null) {
+			return;
+		}
+		body.setSleepingAllowed(true);
+		body.setUserData(this);
+		body.setBullet(true);
+		worldCenter.set(body.getWorldCenter());
+		worldStart.set(getWorldCenter());
+	}
+
+	/**
+	 * If this object's world position is not in these bounds, don't draw it. Should
+	 * point to a commonly shared Rectangle object that is updated at a single point
+	 * before act is called.
+	 *
+	 * @param cull
+	 */
+	public void setCull(final Rectangle cull) {
+		this.cull = cull;
+	}
+
+	public void setCulled(final boolean isCulled) {
 		this.isCulled = isCulled;
 	}
 
-	public Array<Entity> getCollidesWith() {
-		return collidesWith;
+	public void setOffset(final Vector2 v) {
+		offset.set(v);
+	}
+
+	public void setOffsetX(final float offsetX) {
+		offset.x = offsetX;
+	}
+
+	public void setOffsetY(final float offsetY) {
+		offset.y = offsetY;
+	}
+
+	public void setWorldPosition(final float x, final float y) {
+		if (body == null) {
+			return;
+		}
+		body.setTransform(x, y, 0f);
+	}
+
+	public void setWorldPosition(final Vector2 pos) {
+		if (body == null) {
+			return;
+		}
+		body.setTransform(pos, 0f);
+	}
+
+	public void setWorldRotation(final float degrees) {
+		if (body == null) {
+			return;
+		}
+		body.setTransform(body.getWorldCenter(), degrees * MathUtils.degreesToRadians);
+	}
+
+	public void setWorldScale(final float worldScale) {
+		this.worldScale = worldScale;
+	}
+
+	public void updatePosition() {
+		boolean doLayout = false;
+		if (body != null && (body.isAwake() || forceLayout)) {
+			worldCenter.set(body.getWorldCenter());
+			final float angle = body.getAngle() * MathUtils.radiansToDegrees;
+			final float newX = worldCenter.x * worldScale + getOffsetX();
+			final float newY = worldCenter.y * worldScale + getOffsetY();
+			if ((int) getX() != (int) newX) {
+				setX(newX);
+				doLayout = true;
+			}
+			if ((int) getY() != (int) newY) {
+				setY(newY);
+				doLayout = true;
+			}
+			if ((int) getRotation() != (int) angle) {
+				setRotation(angle);
+				doLayout = true;
+			}
+			if (forceLayout) {
+				doLayout = true;
+				forceLayout = false;
+			}
+		}
+		if (doLayout) {
+			layout();
+		}
+	}
+
+	public void updatePosition(final boolean forceLayout) {
+		this.forceLayout = forceLayout;
+		updatePosition();
 	}
 
 }
