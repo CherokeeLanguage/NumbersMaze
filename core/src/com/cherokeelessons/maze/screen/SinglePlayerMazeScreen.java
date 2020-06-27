@@ -103,16 +103,15 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		giq.load(seed);
 		challengeList.clear();
 		ArrayList<Integer> list = giq.getIntervalQueue();
-		Gdx.app.log(this.getClass().getSimpleName(),"MASTER CHALLENGE LIST: " + list.size() + " := "
-				+ list);
+		Gdx.app.log(this.getClass().getSimpleName(), "MASTER CHALLENGE LIST: " + list.size() + " := " + list);
 		int split = list.size() / challengeSplit;
 		int setStart = split * subSet;
 		int nextSet = split * (subSet + 1);
 		for (int ix = setStart; ix < nextSet; ix++) {
 			challengeList.add(list.get(ix));
 		}
-		Gdx.app.log(this.getClass().getSimpleName(),"LEVEL CHALLENGE LIST: " + challengeList.size
-				+ " := " + challengeList);
+		Gdx.app.log(this.getClass().getSimpleName(),
+				"LEVEL CHALLENGE LIST: " + challengeList.size + " := " + challengeList);
 		challengeTotalValue = 0;
 		for (Integer i : challengeList) {
 			challengeTotalValue += i;
@@ -143,8 +142,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	private Camera gameStage_camera;
 
 	private int getSecondsLeft() {
-		long remainingTime = timelimit
-				- (System.currentTimeMillis() - startTime);
+		long remainingTime = timelimit - (System.currentTimeMillis() - startTime);
 		return (int) remainingTime / 1000;
 	}
 
@@ -204,8 +202,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		AtlasRegion infoStyle_ar = S.getArg().findRegion("block_ltblue");
 		NinePatch infoStyle_9 = new NinePatch(infoStyle_ar, 12, 12, 12, 12);
-		LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20),
-				new Color(Color.RED));
+		LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.RED));
 		infoStyle.background = new NinePatchDrawable(infoStyle_9);
 
 		label_level = new Label("Maze: " + 0, ls);
@@ -228,15 +225,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		label_score = new Label("000000000", score_style);
 		label_score.pack();
-		label_score.setX(overscan.x + (overscan.width - label_score.getWidth())
-				/ 2);
-		label_score.setOrigin(label_score.getWidth() / 2,
-				label_score.getHeight() / 2);
+		label_score.setX(overscan.x + (overscan.width - label_score.getWidth()) / 2);
+		label_score.setOrigin(label_score.getWidth() / 2, label_score.getHeight() / 2);
 		label_score.setHeight(label_score.getHeight() * .6f);
 		label_score.layout();
 		// label_score.getColor().a=.8f;
-		label_score
-				.setY(overscan.y + overscan.height - label_score.getHeight());
+		label_score.setY(overscan.y + overscan.height - label_score.getHeight());
 		hud.addActor(label_score);
 
 		AtlasRegion bg = S.getArg().findRegion("background-1");
@@ -255,8 +249,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		gameStage.addActor(tiles);
 
-		Gdx.app.log(this.getClass().getSimpleName(),"STAGE SIZE: " + gameStage.getWidth() + "x"
-				+ gameStage.getHeight());
+		Gdx.app.log(this.getClass().getSimpleName(),
+				"STAGE SIZE: " + gameStage.getWidth() + "x" + gameStage.getHeight());
 
 		player1 = new Player();
 		player1.setWorldScale(WORLD_TO_BOX);
@@ -268,7 +262,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		joylist = Controllers.getControllers();
 
 		for (Controller c : joylist) {
-			Gdx.app.log(this.getClass().getSimpleName(),"INPUT: " + c.getName());
+			Gdx.app.log(this.getClass().getSimpleName(), "INPUT: " + c.getName());
 		}
 
 		player1.gamepad = gamepadInput;
@@ -288,7 +282,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	public void setupMaze() {
-		Gdx.app.log(this.getClass().getSimpleName(),"MAZE: " + level);
+		Gdx.app.log(this.getClass().getSimpleName(), "MAZE: " + level);
 		tiles.clear();
 		blockList.clear();
 		calculateChallengeList(level);
@@ -304,12 +298,11 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		if (blockListValue < challengeTotalValue) {
 			player1.badValue_add(challengeTotalValue - blockListValue);
 		}
-		Gdx.app.log(this.getClass().getSimpleName(),"challengeTotalValue: " + challengeTotalValue);
-		Gdx.app.log(this.getClass().getSimpleName(),"blockListValue: " + blockListValue);
-		Gdx.app.log(this.getClass().getSimpleName(),"player1.badValue: " + player1.badValue_getPending());
-		label_level.setText("Maze Level: " + level
-				+ "\nExplode DICE in this combination: "
-				+ GenerateNumber.getCardinal(theChallenge));
+		Gdx.app.log(this.getClass().getSimpleName(), "challengeTotalValue: " + challengeTotalValue);
+		Gdx.app.log(this.getClass().getSimpleName(), "blockListValue: " + blockListValue);
+		Gdx.app.log(this.getClass().getSimpleName(), "player1.badValue: " + player1.badValue_getPending());
+		label_level.setText("Maze Level: " + level + "\nNumber: " //
+				+ GenerateNumber.getCardinal(theChallenge) + " [" + theChallenge + "]");
 		label_level.pack();
 		// S.getSnd().play_number_sequence(this, GenerateNumber
 		// .getAudioSequence(theChallenge));
@@ -350,13 +343,13 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				NumbersMaze.post(e);
 				return true;
 			}
-			if (keycode==Keys.CENTER) {
+			if (keycode == Keys.CENTER) {
 				Controller c;
 				Array<Controller> controllers = Controllers.getControllers();
 				if (!controllers.isEmpty()) {
 					c = controllers.first();
 				} else {
-					c= null;
+					c = null;
 				}
 				return buttonUp(c, Xbox.BUTTON_A);
 			}
@@ -373,7 +366,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		super.show();
 		startTime += System.currentTimeMillis() - tickOffset;
 		Controllers.addListener(player1.gamepad);
-		Gdx.app.log(this.getClass().getSimpleName(),"LEVEL: " + level);
+		Gdx.app.log(this.getClass().getSimpleName(), "LEVEL: " + level);
 		if (activeSong != null) {
 			MusicPlayEvent e = new MusicPlayEvent();
 			e.name = activeSong;
@@ -381,20 +374,15 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			NumbersMaze.post(e);
 		}
 		if (ultimate && timeLeft == null) {
-			AtlasRegion timeRemainingRegion = S.getArg().findRegion(
-					"block_ltblue");
-			NinePatch timeRemaining_9 = new NinePatch(timeRemainingRegion, 12,
-					12, 12, 12);
-			LabelStyle timeRemainingStyle = new LabelStyle(S.getFnt().getFont(
-					20), new Color(Color.DARK_GRAY));
-			timeRemainingStyle.background = new NinePatchDrawable(
-					timeRemaining_9);
+			AtlasRegion timeRemainingRegion = S.getArg().findRegion("block_ltblue");
+			NinePatch timeRemaining_9 = new NinePatch(timeRemainingRegion, 12, 12, 12, 12);
+			LabelStyle timeRemainingStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.DARK_GRAY));
+			timeRemainingStyle.background = new NinePatchDrawable(timeRemaining_9);
 			timeRemainingStyle.font.setFixedWidthGlyphs("0123456789");
 			timeLeft = new Label("00:00", timeRemainingStyle);
 			timeLeft.pack();
 			timeLeft.setX(overscan.x + overscan.width - timeLeft.getWidth());
-			timeLeft.setOrigin(timeLeft.getWidth() / 2,
-					timeLeft.getHeight() / 2);
+			timeLeft.setOrigin(timeLeft.getWidth() / 2, timeLeft.getHeight() / 2);
 			timeLeft.setHeight(timeLeft.getHeight() * .6f);
 			timeLeft.layout();
 			timeLeft.setY(overscan.y + overscan.height - timeLeft.getHeight());
@@ -449,10 +437,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			maxInPlay = theChallenge;
 		}
 
-		float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32
-				* BOX_TO_WORLD;
-		float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32
-				* BOX_TO_WORLD;
+		float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
+		float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
 
 		culler.x = playerPos.x - w / 2;
 		culler.y = playerPos.y - h / 2;
@@ -478,8 +464,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		mem1 = Gdx.app.getJavaHeap();
 		mem2 = Gdx.app.getNativeHeap();
-		info_label.setText("FPS: " + Gdx.graphics.getFramesPerSecond()
-				+ "\nMEM (j/n): " + mem1 / (1024 * 1024) + ", "
+		info_label.setText("FPS: " + Gdx.graphics.getFramesPerSecond() + "\nMEM (j/n): " + mem1 / (1024 * 1024) + ", "
 				+ mem2 / (1024 * 1024));
 		info_label.pack();
 		info_label.setY(hud.getHeight() - info_label.getHeight());
@@ -495,8 +480,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			if (challengeList.size > 0) {
 				theChallenge = challengeList.removeIndex(0);
 				player1.theChallenge = theChallenge;
-				label_level.setText("Level: " + level + "\n"
-						+ GenerateNumber.getCardinal(theChallenge));
+				label_level.setText("Level: " + level + "\n" + GenerateNumber.getCardinal(theChallenge));
 				label_level.pack();
 			} else {
 				label_level.setText("Level: " + level + "\nᏄᎳ! ᏄᎳ!");
@@ -518,27 +502,21 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		world.processOrphans(gameStage);
 		int blockListValue = getValue(blockList);
 		int inLimbo = player1.pointsInLimbo() + world.pointsInLimbo();
-		int badValue_pending = player1.badValue_getPending()
-				+ world.getBadAccumulator();
+		int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
 		totalValueLeft = blockListValue + badValue_pending + inLimbo;
 
 		// random death orbs, time gap between is based on level
 		nextOrb -= delta;
 		if (nextOrb < 0f) {
-			nextOrb = MathUtils.random(1f / level) * 60f
-					+ DeathOrb.getLifeSpan() / 2000f;
-			Vector2 new_block_pos = numberPortal.get(MathUtils
-					.random(numberPortal.size - 1));
+			nextOrb = MathUtils.random(1f / level) * 60f + DeathOrb.getLifeSpan() / 2000f;
+			Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
-				new DeathOrb(world.getWorld(), player1.getWorldScale(),
-						new_block_pos, 0);
+				new DeathOrb(world.getWorld(), player1.getWorldScale(), new_block_pos, 0);
 			}
 		}
 
-		if (blockListValue + inLimbo < maxInPlay
-				&& System.currentTimeMillis() - restoreBlockTick > 500) {
-			Vector2 new_block_pos = numberPortal.get(MathUtils
-					.random(numberPortal.size - 1));
+		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 500) {
+			Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
 				int maxFaceValue = getMaxChallenge();
 				if (player1.badValue_hasPending()) {
@@ -550,8 +528,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					if (dieFace == 80) {
 						dieFace = 8;
 					}
-					Entity tile = generateBlockTile(number_tile,
-							new_block_pos.x, new_block_pos.y, dieFace - 1);
+					Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
 					blockList.add(tile);
 				} else if (world.badValue_hasPending()) {
 					int dieValue = world.badValue_getNext(maxFaceValue);
@@ -562,8 +539,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					if (dieFace == 80) {
 						dieFace = 8;
 					}
-					Entity tile = generateBlockTile(number_tile,
-							new_block_pos.x, new_block_pos.y, dieFace - 1);
+					Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
 					blockList.add(tile);
 				}
 				if (System.currentTimeMillis() > sinceLastNotice) {
@@ -571,7 +547,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					sinceLastNotice = System.currentTimeMillis() + 30000;
 				}
 			}
-			Gdx.app.log(this.getClass().getSimpleName(),"=== totalValueRemaining: " + totalValueLeft);
+			Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
 			restoreBlockTick = System.currentTimeMillis();
 		}
 		// should portal be available check
@@ -582,8 +558,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			lastShowPortalTick = System.currentTimeMillis();
 		}
 
-		if (showPortal && thePortal != null
-				&& System.currentTimeMillis() - lastShowPortalTick > 1500) {
+		if (showPortal && thePortal != null && System.currentTimeMillis() - lastShowPortalTick > 1500) {
 			if (System.currentTimeMillis() - levelCompleteTick > 4000) {
 				SoundPlayEvent e = new SoundPlayEvent();
 				e.name = "level_finished";
@@ -743,17 +718,16 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 		// actors
 		for (Entity e : eList) {
-			if (e.getParent()!=null) {
+			if (e.getParent() != null) {
 				continue;
 			}
 			if (e.identity == Entity.PORTAL) {
 				continue;
 			}
-			if (e.identity == Entity.WALL | e.identity == Entity.BLOCK
-					| e.identity == Entity.FLOOR) {
+			if (e.identity == Entity.WALL | e.identity == Entity.BLOCK | e.identity == Entity.FLOOR) {
 				continue;
 			}
-			
+
 			e.updatePosition(true);
 
 			gameStage.addActor(e);
@@ -933,8 +907,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_h8;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dx = 1; dx < len
-								&& ix + dx < displayGrid.length; dx++) {
+						for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 							if (displayGrid[ix + dx][iy] == tile_h1) {
 								c++;
 								continue;
@@ -943,8 +916,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dx = 1; dx < len
-									&& ix + dx < displayGrid.length; dx++) {
+							for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 								displayGrid[ix + dx][iy] = tile_blank;
 							}
 						}
@@ -954,8 +926,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_h4;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dx = 1; dx < len
-								&& ix + dx < displayGrid.length; dx++) {
+						for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 							if (displayGrid[ix + dx][iy] == tile_h1) {
 								c++;
 								continue;
@@ -964,8 +935,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dx = 1; dx < len
-									&& ix + dx < displayGrid.length; dx++) {
+							for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 								displayGrid[ix + dx][iy] = tile_blank;
 							}
 						}
@@ -975,8 +945,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_h3;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dx = 1; dx < len
-								&& ix + dx < displayGrid.length; dx++) {
+						for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 							if (displayGrid[ix + dx][iy] == tile_h1) {
 								c++;
 								continue;
@@ -985,8 +954,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dx = 1; dx < len
-									&& ix + dx < displayGrid.length; dx++) {
+							for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 								displayGrid[ix + dx][iy] = tile_blank;
 							}
 						}
@@ -996,8 +964,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_h2;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dx = 1; dx < len
-								&& ix + dx < displayGrid.length; dx++) {
+						for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 							if (displayGrid[ix + dx][iy] == tile_h1) {
 								c++;
 								continue;
@@ -1006,8 +973,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dx = 1; dx < len
-									&& ix + dx < displayGrid.length; dx++) {
+							for (int dx = 1; dx < len && ix + dx < displayGrid.length; dx++) {
 								displayGrid[ix + dx][iy] = tile_blank;
 							}
 						}
@@ -1028,8 +994,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_v8;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dy = 1; dy < len
-								&& iy + dy < displayGrid[0].length; dy++) {
+						for (int dy = 1; dy < len && iy + dy < displayGrid[0].length; dy++) {
 							if (displayGrid[ix][iy + dy] == tile_h1) {
 								c++;
 								continue;
@@ -1038,8 +1003,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dy = 1; dy < len
-									&& iy + dy < displayGrid.length; dy++) {
+							for (int dy = 1; dy < len && iy + dy < displayGrid.length; dy++) {
 								displayGrid[ix][iy + dy] = tile_blank;
 							}
 						}
@@ -1049,8 +1013,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_v4;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dy = 1; dy < len
-								&& iy + dy < displayGrid[0].length; dy++) {
+						for (int dy = 1; dy < len && iy + dy < displayGrid[0].length; dy++) {
 							if (displayGrid[ix][iy + dy] == tile_h1) {
 								c++;
 								continue;
@@ -1059,8 +1022,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dy = 1; dy < len
-									&& iy + dy < displayGrid.length; dy++) {
+							for (int dy = 1; dy < len && iy + dy < displayGrid.length; dy++) {
 								displayGrid[ix][iy + dy] = tile_blank;
 							}
 						}
@@ -1070,8 +1032,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_v3;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dy = 1; dy < len
-								&& iy + dy < displayGrid[0].length; dy++) {
+						for (int dy = 1; dy < len && iy + dy < displayGrid[0].length; dy++) {
 							if (displayGrid[ix][iy + dy] == tile_h1) {
 								c++;
 								continue;
@@ -1080,8 +1041,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dy = 1; dy < len
-									&& iy + dy < displayGrid.length; dy++) {
+							for (int dy = 1; dy < len && iy + dy < displayGrid.length; dy++) {
 								displayGrid[ix][iy + dy] = tile_blank;
 							}
 						}
@@ -1091,8 +1051,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tag = tile_v2;
 					if (displayGrid[ix][iy] == tile_h1) {
 						int c = 0;
-						for (int dy = 1; dy < len
-								&& iy + dy < displayGrid[0].length; dy++) {
+						for (int dy = 1; dy < len && iy + dy < displayGrid[0].length; dy++) {
 							if (displayGrid[ix][iy + dy] == tile_h1) {
 								c++;
 								continue;
@@ -1101,8 +1060,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 						}
 						if (c == len - 1) {
 							displayGrid[ix][iy] = tag;
-							for (int dy = 1; dy < len
-									&& iy + dy < displayGrid.length; dy++) {
+							for (int dy = 1; dy < len && iy + dy < displayGrid.length; dy++) {
 								displayGrid[ix][iy + dy] = tile_blank;
 							}
 						}
@@ -1132,8 +1090,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				float height = tileGrideSize * (h + 1);
 				int ml = floor_tile.length;
 				int mi = level % ml;
-				Entity tile = generateFloorTile(floor_tile[mi], posX, posY,
-						width, height);
+				Entity tile = generateFloorTile(floor_tile[mi], posX, posY, width, height);
 				tile.identity = Entity.FLOOR;
 				imgList.add(tile);
 				floorTiles.add(tile);
@@ -1237,15 +1194,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					tile.setOffsetX(-tile.getWidth() / 2);
 					tile.setOffsetY(-tile.getHeight() / 2);
 					tile.setWorldScale(WORLD_TO_BOX);
-					//tile.setScale(.9f);
+					// tile.setScale(.9f);
 					tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
 					tile.layout();
 
 					BodyDef bodyDef = new BodyDef();
 					bodyDef.type = BodyType.DynamicBody;
-					bodyDef.position.set((-16 + ix * tileGrideSize)
-							* BOX_TO_WORLD, (-16 + iy * tileGrideSize)
-							* BOX_TO_WORLD);
+					bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD,
+							(-16 + iy * tileGrideSize) * BOX_TO_WORLD);
 					float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 					Body body = world.getWorld().createBody(bodyDef);
 					body.setFixedRotation(false);
@@ -1254,8 +1210,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					// CircleShape circle=new CircleShape();
 					// circle.setRadius(rad);
 					PolygonShape box = new PolygonShape();
-					box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD,
-							(tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
+					box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
 					FixtureDef fDef = new FixtureDef();
 					fDef.density = .01f;
 					fDef.friction = 1f;
@@ -1311,8 +1266,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	public boolean ultimate = false;
 	public long timelimit = 0l;
 
-	private Entity generateFloorTile(AtlasRegion floor_tile, float ix,
-			float iy, float w_pix, float h_pix) {
+	private Entity generateFloorTile(AtlasRegion floor_tile, float ix, float iy, float w_pix, float h_pix) {
 		float px = ix * tileGrideSize + (w_pix - tileGrideSize);
 		float py = iy * tileGrideSize + (h_pix - tileGrideSize);
 		Entity tile;
@@ -1338,8 +1292,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		body.setLinearVelocity(new Vector2(0f, 0f));
 		body.setLinearDamping(1f);
 		PolygonShape box = new PolygonShape();
-		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD,
-				(tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
+		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
 		FixtureDef fDef = new FixtureDef();
 		fDef.density = 10f;
 		fDef.friction = 1f;
@@ -1370,16 +1323,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
-		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy
-				* tileGrideSize * BOX_TO_WORLD);
+		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy * tileGrideSize * BOX_TO_WORLD);
 		float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 		Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
 		body.setLinearDamping(1f);
 		PolygonShape box = new PolygonShape();
-		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD,
-				(tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
+		box.setAsBox((tile.getWidth() - 1) / 2 * BOX_TO_WORLD, (tile.getHeight() - 1) / 2 * BOX_TO_WORLD);
 		FixtureDef fDef = new FixtureDef();
 		fDef.density = 10f;
 		fDef.friction = 1f;
@@ -1395,8 +1346,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		return tile;
 	}
 
-	private Entity generateBlockTile(AtlasRegion[] number_tile, float ix,
-			float iy, final int die_face) {
+	private Entity generateBlockTile(AtlasRegion[] number_tile, float ix, float iy, final int die_face) {
 		Entity tile = new Entity(number_tile[die_face]);
 		tile.identity = Entity.BLOCK;
 		tile.value = die_face + 1;
@@ -1425,16 +1375,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.DynamicBody;
-		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD,
-				(-16 + iy * tileGrideSize) * BOX_TO_WORLD);
+		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD, (-16 + iy * tileGrideSize) * BOX_TO_WORLD);
 		// float rad = (tile.getWidth() * BOX_TO_WORLD / 2);
 		Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
 		body.setLinearDamping(1f);
 		PolygonShape box = new PolygonShape();
-		box.setAsBox((width - 1) / 2 * BOX_TO_WORLD, (height - 1) / 2
-				* BOX_TO_WORLD);
+		box.setAsBox((width - 1) / 2 * BOX_TO_WORLD, (height - 1) / 2 * BOX_TO_WORLD);
 		FixtureDef fDef = new FixtureDef();
 		fDef.density = tile.value * .01f;
 		fDef.friction = 1f;
@@ -1442,8 +1390,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		fDef.shape = box;
 		if (tile.value < 80) {
 			fDef.filter.categoryBits = TheWorld.TYPE_BLOCK;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL
-					^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER);
+			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER);
 			;
 		} else {
 			fDef.filter.categoryBits = TheWorld.TYPE_WALL;
