@@ -205,6 +205,7 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 
 	@Override
 	public boolean keyDown(final int keycode) {
+		System.out.println("PlayerInput.java#keyDown: "+keycode);
 		Controller c;
 		final Array<Controller> controllers = Controllers.getControllers();
 		if (!controllers.isEmpty()) {
@@ -214,23 +215,36 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 		}
 		switch (keycode) {
 		case Keys.MEDIA_PLAY_PAUSE:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [X]");
 			return buttonDown(c, Xbox.BUTTON_X);
 		case Keys.CENTER:
+		case Keys.ENTER:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [A]");
 			return buttonDown(c, Xbox.BUTTON_A);
 		case Keys.Z:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [X]");
 			return buttonDown(c, Xbox.BUTTON_X);
 		case Keys.X:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [B]");
 			return buttonDown(c, Xbox.BUTTON_B);
 		case Keys.C:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [A]");
 			return buttonDown(c, Xbox.BUTTON_A);
 		case Keys.UP:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [AXIS-Y-DOWN]");
 			return axisMoved(c, Xbox.DPAD_AXIS_Y, -1);
 		case Keys.DOWN:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [AXYS-Y-UP]");
 			return axisMoved(c, Xbox.DPAD_AXIS_Y, 1);
 		case Keys.RIGHT:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [AXYS-X-RIGHT]");
 			return axisMoved(c, Xbox.DPAD_AXIS_X, 1);
 		case Keys.LEFT:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [AXYS-X-LEFT]");
 			return axisMoved(c, Xbox.DPAD_AXIS_X, -1);
+		default:
+			System.out.println("PlayerInput.java#keyDown-map-to:  [NOT MAPPED]");
+			break;
 		}
 		return false;
 	}
@@ -243,6 +257,7 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 
 	@Override
 	public boolean keyUp(final int keycode) {
+		System.out.println("PlayerInput.java#keyUp: "+keycode);
 		Controller c;
 		final Array<Controller> controllers = Controllers.getControllers();
 		if (!controllers.isEmpty()) {
@@ -252,23 +267,36 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 		}
 		switch (keycode) {
 		case Keys.MEDIA_PLAY_PAUSE:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [X]");
 			return buttonUp(c, Xbox.BUTTON_X);
 		case Keys.CENTER:
+		case Keys.ENTER:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [A]");
 			return buttonUp(c, Xbox.BUTTON_A);
 		case Keys.Z:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [X]");
 			return buttonUp(c, Xbox.BUTTON_X);
 		case Keys.X:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [B]");
 			return buttonUp(c, Xbox.BUTTON_B);
 		case Keys.C:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [A]");
 			return buttonUp(c, Xbox.BUTTON_A);
 		case Keys.UP:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [AXIS-Y-DOWN]");
 			return axisMoved(c, Xbox.DPAD_AXIS_Y, 0);
 		case Keys.DOWN:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [AXIS-Y-UP]");
 			return axisMoved(c, Xbox.DPAD_AXIS_Y, 0);
 		case Keys.RIGHT:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [AXIS-X-RIGHT]");
 			return axisMoved(c, Xbox.DPAD_AXIS_X, 0);
 		case Keys.LEFT:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [AXIS-X-LEFT]");
 			return axisMoved(c, Xbox.DPAD_AXIS_X, 0);
+		default:
+			System.out.println("PlayerInput.java#keyUp-map-to:  [NOT MAPPED]");
+			break;
 		}
 		return false;
 	}

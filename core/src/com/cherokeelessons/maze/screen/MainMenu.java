@@ -63,12 +63,12 @@ public class MainMenu extends ScreenBase {
 		}
 
 		@Override
-		public boolean buttonUp(final Controller controller, final int buttonCode) {
+		public boolean buttonDown(final Controller controller, final int buttonCode) {
 			if (buttonCode == Xbox.BUTTON_A) {
 				doButton.run();
 				return true;
 			}
-			return super.buttonUp(controller, buttonCode);
+			return super.buttonDown(controller, buttonCode);
 		}
 
 		@Override
@@ -295,16 +295,21 @@ public class MainMenu extends ScreenBase {
 		titleStyle.fontColor = Color.LIGHT_GRAY;
 
 		final Label title = new Label("Cherokee Numbers Maze", titleStyle);
+		title.pack();
 		title.setHeight(title.getHeight() * .75f);
-		title.setY(overscan.y + overscan.height - title.getHeight());
 		title.setX(overscan.x + (overscan.width - title.getWidth()) / 2);
+		title.setY(overscan.y + overscan.height - title.getHeight());
 
 		final float th = title.getHeight();
 		float totalH = 0;
 		for (final TextButton tb : menuItems) {
+			tb.pack();
 			tb.setHeight(tb.getHeight() * .7f);
-			tb.padBottom(22);
-			totalH += tb.getHeight();
+			tb.pad(0);
+			tb.padLeft(10);
+			tb.padRight(10);
+			tb.pack();
+			totalH += tb.getHeight();			
 		}
 		final float gap = (overscan.height - totalH - th) / menuItems.size();
 

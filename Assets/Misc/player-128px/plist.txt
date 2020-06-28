@@ -1,0 +1,17 @@
+player-128px/east-0.png
+player-128px/east-1.png
+player-128px/east-2.png
+player-128px/east-3.png
+player-128px/north-0.png
+player-128px/north-1.png
+player-128px/north-2.png
+player-128px/north-3.png
+player-128px/south-0.png
+player-128px/south-1.png
+player-128px/south-2.png
+player-128px/south-3.png
+player-128px/south-4.png
+player-128px/west-0.png
+player-128px/west-1.png
+player-128px/west-2.png
+player-128px/west-3.png

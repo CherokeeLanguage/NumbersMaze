@@ -68,7 +68,6 @@ import com.cherokeelessons.maze.object.DataBundle;
 import com.cherokeelessons.maze.object.GenerateNumber;
 import com.cherokeelessons.maze.object.Maze;
 import com.cherokeelessons.maze.object.MazeCell;
-import com.cherokeelessons.maze.object.Xbox;
 
 public class SinglePlayerMazeScreen extends ScreenBase {
 
@@ -111,8 +110,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	private final Array<Vector2> numberPortal = new Array<>();
 	private String activeSong = null;
 	private final PlayerInput gamepadInput = new PlayerInput() {
+		
 		@Override
-		public boolean keyUp(final int keycode) {
+		public boolean keyDown(int keycode) {
+			System.out.println("SinglePlayerMaze.java#PlayerInput#keyDown: "+keycode);
 			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
 				final ScreenChangeEvent e = new ScreenChangeEvent();
 				e.data.put(data);
@@ -120,17 +121,17 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				NumbersMaze.post(e);
 				return true;
 			}
-			if (keycode == Keys.CENTER) {
-				Controller c;
-				final Array<Controller> controllers = Controllers.getControllers();
-				if (!controllers.isEmpty()) {
-					c = controllers.first();
-				} else {
-					c = null;
-				}
-				return buttonUp(c, Xbox.BUTTON_A);
-			}
-			return super.keyUp(keycode);
+//			if (keycode == Keys.CENTER) {
+//				Controller c;
+//				final Array<Controller> controllers = Controllers.getControllers();
+//				if (!controllers.isEmpty()) {
+//					c = controllers.first();
+//				} else {
+//					c = null;
+//				}
+//				return buttonDown(c, Xbox.BUTTON_A);
+//			}
+			return super.keyDown(keycode);
 		}
 	};
 
@@ -196,7 +197,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	public SinglePlayerMazeScreen(final NumbersMaze app, final DataBundle _data) {
 		super();
 		data.put(_data);
-		level = data.getInteger("level", 1);
+		level = Math.max(data.getInteger("level", 1), 1);
 		ultimate = data.getBoolean("ultimate", false);
 		theScore = data.getInteger("score");
 
@@ -258,7 +259,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		background.setColor(1, 1, 1, .35f);
 		background.setFillParent(true);
 		background.setScaling(Scaling.fill);
-		backDrop.addActor(background);
+//		backDrop.addActor(background);
 
 		world = new TheWorld();
 		debugRenderer = new Box2DDebugRenderer();
@@ -735,7 +736,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					// imgList.add(tile);
 
 					tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
-					tile.setScale(1);
+					tile.setScale(2);
 					tile.setOffsetX(-tile.getWidth() / 2);
 					tile.setOffsetY(-tile.getHeight() / 2);
 					tile.setWorldScale(WORLD_TO_BOX);
@@ -804,10 +805,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 	}
 
-	private void calculateChallengeList(int level) {
-		level--;
-		final int challengeSet = level / challengeSplit + 1;
-		final int subSet = level % challengeSplit;
+	private void calculateChallengeList(int challengeLevel) {
+		challengeLevel--;
+		final int challengeSet = challengeLevel / challengeSplit + 1;
+		final int subSet = challengeLevel % challengeSplit;
 		final int range = 7;
 		final int start = (challengeSet - 1) * range + 1;
 		final int end = start + range;
@@ -1291,7 +1292,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		Gdx.app.log(this.getClass().getSimpleName(), "MAZE: " + level);
 		tiles.clear();
 		blockList.clear();
-		calculateChallengeList(level);
+		calculateChallengeList(Math.max(level, 1));
 		final int maxFaceValue = getMaxChallenge();
 		theChallenge = challengeList.removeIndex(0);
 		addMazeToStage(level, maxFaceValue);

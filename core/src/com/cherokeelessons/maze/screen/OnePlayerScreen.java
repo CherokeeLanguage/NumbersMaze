@@ -43,8 +43,13 @@ public class OnePlayerScreen extends ScreenBase {
 			+ " * If you can't make a combination for the challenge, collect dice\n"
 			+ "   into a pile and shoot them to cause new combinations to appear.\n"
 			+ " * After completing the challenges for each level, a 'gateway' will\n"
-			+ "   appear to go to the next level.\n" + "\n" + " Xbox: [X] or Ouya: [U] - To pick up and drop boxes.\n"
-			+ " Xbox: [A] or Ouya: [O] - To fire a bolt to trigger an explosion.\n" + "\n" + " Press [O] when ready.";
+			+ "   appear to go to the next level.\n" //
+			+ "\n" //
+			+ " Use left joystick or dpad to move around.\n" //
+			+ " Use [X] to pick up and drop boxes.\n" //
+			+ " Use [A] to fire a bolt to trigger an explosion.\n" //
+			+ "\n" //
+			+ " Press [A] when ready.";
 	private Label msgBox = null;
 	private LabelStyle msgBoxStyle = null;
 	private NinePatchDrawable npd = null;
@@ -87,12 +92,13 @@ public class OnePlayerScreen extends ScreenBase {
 		}
 
 		@Override
-		public boolean buttonUp(final Controller controller, final int buttonCode) {
+		public boolean buttonDown(final Controller controller, final int buttonCode) {
+			System.out.println("OnePlayerScreen.java#buttonDown: "+buttonCode);
 			if (buttonCode == Xbox.BUTTON_A) {
 				doButton.run();
 				return true;
 			}
-			return super.buttonUp(controller, buttonCode);
+			return super.buttonDown(controller, buttonCode);
 		}
 
 		@Override
@@ -103,16 +109,16 @@ public class OnePlayerScreen extends ScreenBase {
 				setButton.run();
 				return true;
 			}
-			if (keycode == Keys.CENTER) {
-				Controller c;
-				final Array<Controller> controllers = Controllers.getControllers();
-				if (!controllers.isEmpty()) {
-					c = controllers.first();
-				} else {
-					c = null;
-				}
-				return buttonDown(c, Xbox.BUTTON_A);
-			}
+//			if (keycode == Keys.CENTER) {
+//				Controller c;
+//				final Array<Controller> controllers = Controllers.getControllers();
+//				if (!controllers.isEmpty()) {
+//					c = controllers.first();
+//				} else {
+//					c = null;
+//				}
+//				return buttonDown(c, Xbox.BUTTON_A);
+//			}
 			return super.keyDown(keycode);
 		}
 
@@ -250,20 +256,20 @@ public class OnePlayerScreen extends ScreenBase {
 				NumbersMaze.post(e);
 			}
 		});
-		pi = new PlayerInput() {
-			@Override
-			public boolean buttonUp(final Controller controller, final int buttonCode) {
-				if (buttonCode == Xbox.BUTTON_A) {
-					final ScreenChangeEvent e = new ScreenChangeEvent();
-					e.data.put(data);
-					e.screen = ScreenList.SinglePlayerMazeScreen;
-					NumbersMaze.post(e);
-					return true;
-				}
-				return super.buttonUp(controller, buttonCode);
-			}
-
-		};
+//		pi = new PlayerInput() {
+//			@Override
+//			public boolean buttonUp(final Controller controller, final int buttonCode) {
+//				if (buttonCode == Xbox.BUTTON_A) {
+//					final ScreenChangeEvent e = new ScreenChangeEvent();
+//					e.data.put(data);
+//					e.screen = ScreenList.SinglePlayerMazeScreen;
+//					NumbersMaze.post(e);
+//					return true;
+//				}
+//				return super.buttonUp(controller, buttonCode);
+//			}
+//
+//		};
 	}
 
 	private void createLevelCompleteMsgBox() {

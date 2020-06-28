@@ -13,6 +13,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.cherokeelessons.maze.DisplaySize;
@@ -34,7 +36,9 @@ public class ScreenBase implements Screen {
 	protected StageBase stageSafeZone;
 	protected StageBase backDrop;
 	protected StageBase hud;
-	protected DisplaySize.Resolution stageSize;
+	protected DisplaySize.Resolution mazeStageSize;
+	protected DisplaySize.Resolution hudStageSize;
+	protected DisplaySize.Resolution backdropStageSize;
 	private boolean debug;
 
 	private boolean showFPS;
@@ -104,11 +108,13 @@ public class ScreenBase implements Screen {
 
 	public ScreenBase() {
 		sb = new SpriteBatch();
-		stageSize = DisplaySize._720p.size();
-		gameStage = new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		stageSafeZone = new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		backDrop = new StageBase(new FitViewport(stageSize.w, stageSize.h));
-		hud = new StageBase(new FitViewport(stageSize.w, stageSize.h));
+		mazeStageSize = DisplaySize._720p.size();
+		hudStageSize = DisplaySize._720p.size();
+		backdropStageSize = DisplaySize._720p.size();
+		gameStage = new StageBase(new FitViewport(mazeStageSize.w, mazeStageSize.h));
+		stageSafeZone = new StageBase(new FitViewport(mazeStageSize.w, mazeStageSize.h));
+		backDrop = new StageBase(new FitViewport(backdropStageSize.w, backdropStageSize.h));
+		hud = new StageBase(new FitViewport(hudStageSize.w, hudStageSize.h));
 		setDebug(true);
 		setShowFPS(true);
 		backgroundColor = new Color(Color.BLACK);
@@ -117,12 +123,12 @@ public class ScreenBase implements Screen {
 		assets = new AssetManager();
 
 		final float gap = 0.075f;
-		final float gw = stageSize.w * gap;
-		final float gh = stageSize.h * gap;
+		final float gw = mazeStageSize.w * gap;
+		final float gh = mazeStageSize.h * gap;
 		overscan.x = gw;
 		overscan.y = gh;
-		overscan.width = stageSize.w - gw * 2;
-		overscan.height = stageSize.h - gh * 2;
+		overscan.width = mazeStageSize.w - gw * 2;
+		overscan.height = mazeStageSize.h - gh * 2;
 	}
 
 	private void connectInputProcessor() {
@@ -183,7 +189,7 @@ public class ScreenBase implements Screen {
 		r.setColor(Color.RED);
 		r.rect(overscan.x, overscan.y, overscan.width, overscan.height);
 		r.setColor(Color.BLUE);
-		r.rect(-1, -1, DisplaySize._720p.width() + 1, DisplaySize._720p.height() + 1);
+		r.rect(-1, -1, mazeStageSize.w + 1, mazeStageSize.h + 1);
 		r.end();
 	}
 
@@ -261,8 +267,8 @@ public class ScreenBase implements Screen {
 		/*
 		 * http://www.badlogicgames.com/forum/viewtopic.php?f=11&t=3422
 		 */
-		scale = (float) stageSize.w / (float) width;
-		scale_h = (float) stageSize.h / (float) height;
+		scale = (float) mazeStageSize.w / (float) width;
+		scale_h = (float) mazeStageSize.h / (float) height;
 
 		if (scale_h > scale) {
 			scale = scale_h;

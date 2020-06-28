@@ -71,7 +71,7 @@ public class SaveLoadScreen extends ScreenBase {
 		Save, Load;
 	}
 
-	private final NumbersMaze app;
+//	private final NumbersMaze app;
 	private final InputMultiplexer mux;
 	private SaveLoadMode slm = SaveLoadMode.Save;
 	private final Preferences slots;
@@ -112,6 +112,8 @@ public class SaveLoadScreen extends ScreenBase {
 				e.screen = ScreenList.SinglePlayerMazeScreen;
 				NumbersMaze.post(e);
 				break;
+			default:
+				break;
 			}
 		}
 	};
@@ -136,7 +138,7 @@ public class SaveLoadScreen extends ScreenBase {
 	private final PlayerInput menuResponder = new PlayerInput() {
 		private PovDirection lastDirNS = PovDirection.center;
 		private PovDirection lastDirEW = PovDirection.center;
-
+		
 		@Override
 		public boolean axisMoved(final Controller controller, final int axisCode, final float value) {
 			if (axisCode == Xbox.AXIS_LEFT_Y) {
@@ -171,52 +173,24 @@ public class SaveLoadScreen extends ScreenBase {
 		}
 
 		@Override
-		public boolean buttonUp(final Controller controller, final int buttonCode) {
-			if (buttonCode == Xbox.BUTTON_A) {
-				doButton.run();
-				return true;
-			}
-			return super.buttonUp(controller, buttonCode);
-		}
-
-		@Override
 		public boolean keyDown(final int keycode) {
 			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
-				// TODO
-				return true;
-			}
-			if (keycode == Keys.CENTER) {
-				Controller c;
-				final Array<Controller> controllers = Controllers.getControllers();
-				if (!controllers.isEmpty()) {
-					c = controllers.first();
-				} else {
-					c = null;
-				}
-				return buttonDown(c, Xbox.BUTTON_A);
-			}
-			return super.keyDown(keycode);
-		}
-
-		@Override
-		public boolean keyUp(final int keycode) {
-			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
 				final ScreenChangeEvent e = new ScreenChangeEvent();
+				e.data.put(data);
 				e.screen = ScreenList.Previous;
 				NumbersMaze.post(e);
 				return true;
 			}
-			if (keycode == Keys.CENTER) {
-				Controller c;
-				final Array<Controller> controllers = Controllers.getControllers();
-				if (!controllers.isEmpty()) {
-					c = controllers.first();
-				} else {
-					c = null;
-				}
-				return buttonUp(c, Xbox.BUTTON_A);
+			return super.keyDown(keycode);
+		}
+		
+		@Override
+		public boolean buttonDown(Controller controller, int buttonCode) {
+			if (buttonCode == Xbox.BUTTON_A) {
+				doButton.run();
+				return true;
 			}
-			return super.keyUp(keycode);
+			return super.buttonDown(controller, buttonCode);
 		}
 
 		@Override
@@ -250,10 +224,10 @@ public class SaveLoadScreen extends ScreenBase {
 		}
 	};
 
-	public SaveLoadScreen(final NumbersMaze _app, final SaveLoadMode mode, final DataBundle _data) {
+	public SaveLoadScreen(@SuppressWarnings("unused") final NumbersMaze _app, final SaveLoadMode mode, final DataBundle _data) {
 		super();
 		data.put(_data);
-		app = _app;
+//		app = _app;
 		slm = mode;
 		setDebug(true);
 		backgroundColor.set(Color.WHITE);
@@ -298,7 +272,7 @@ public class SaveLoadScreen extends ScreenBase {
 			btn.setX(ix / 6 * (overscan.getWidth() / 2) + overscan.x + padding);
 			btn.setY((5 - ix % 6) * (btn.getHeight() + padding) + overscan.y + padding);
 			String x = btn.getText().toString();
-			while (btn.getLabel().getGlyphLayout().width + padding > btn.getWidth()) {
+			while (!x.isEmpty() && btn.getLabel().getGlyphLayout().width + padding > btn.getWidth()) {
 				x = x.substring(0, x.length() - 1);
 				btn.setText(x + "...");
 			}
@@ -306,7 +280,7 @@ public class SaveLoadScreen extends ScreenBase {
 				int item = slotButton.size();
 
 				@Override
-				public void clicked(final InputEvent event, final float x, final float y) {
+				public void clicked(final InputEvent event, final float x1, final float y) {
 					Gdx.app.log(this.getClass().getSimpleName(), "New Game!");
 					menu_item = item;
 					setButton.run();

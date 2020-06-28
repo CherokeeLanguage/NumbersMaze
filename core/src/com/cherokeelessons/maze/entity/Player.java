@@ -33,7 +33,7 @@ public class Player extends Entity {
 	final public static int SOUTH = 3;
 	public BitmapFont scoreFont = null;
 
-	private final float avatarScale = .8f;
+	private final float avatarScale = 1f; //.8f;
 	private final Random r = new Random();
 	public int theChallenge = 1;
 	public int myScore = 0;
@@ -213,6 +213,9 @@ public class Player extends Entity {
 
 		impulse.x = 0.75f * gamepad.deltaX;
 		impulse.y = 0.75f * gamepad.deltaY;
+		
+		impulse.x = 1f * gamepad.deltaX;
+		impulse.y = 1f * gamepad.deltaY;
 
 		// change graphic and such to match new movement impulse
 		// determine direction based on magnitude and update texture being
@@ -515,10 +518,10 @@ public class Player extends Entity {
 		}
 		int i = 0;
 		if (dir == NORTH || dir == SOUTH) {
-			i = (int) getY() % 4;
+			i = (int) (getY() % (58 / 4)) % 4;
 		}
 		if (dir == EAST || dir == WEST) {
-			i = (int) (getX() % 48) / 12;
+			i = (int) (getX() / (38 / 4)) % 4;
 		}
 		if (i < 0) {
 			i = -i;

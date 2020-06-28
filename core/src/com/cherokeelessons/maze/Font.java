@@ -67,11 +67,15 @@ public class Font {
 		parameter.size = size;
 		parameter.characters = myCharSet;
 		parameter.incremental = false;
+		parameter.minFilter=TextureFilter.Linear;
+		parameter.magFilter=TextureFilter.Linear;
 		font = ttfgen.generateFont(parameter);
 		// font = ttfgen.generateFont(size, myCharSet, false);
 		if (fixedNumbers) {
 			font.setFixedWidthGlyphs("0123456789");
 		}
+//		font.getData().scaleX=2f;
+//		font.getData().scaleY=2f;
 		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		fontCache.put(fontKey, font);
 		return font;

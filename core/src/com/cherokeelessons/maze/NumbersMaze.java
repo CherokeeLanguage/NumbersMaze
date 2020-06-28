@@ -34,6 +34,7 @@ import com.cherokeelessons.maze.screen.OnePlayerScreen;
 import com.cherokeelessons.maze.screen.Paused;
 import com.cherokeelessons.maze.screen.SaveLoadScreen;
 import com.cherokeelessons.maze.screen.SaveLoadScreen.SaveLoadMode;
+import com.cherokeelessons.maze.screen.ScreenBase;
 import com.cherokeelessons.maze.screen.SinglePlayerMazeScreen;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -104,11 +105,11 @@ public class NumbersMaze extends Game {
 
 	public LoadingScreen loadingScreen;
 
-	public MainMenu mainMenu;
+	public ScreenBase mainMenu;
 
 	public SinglePlayerMazeScreen singlePlayerMazeScreen;
 	public SinglePlayerMazeScreen ultimatePlayerMazeScreen;
-	public OnePlayerScreen onePlayer;
+	public ScreenBase onePlayer;
 	Array<ScreenList> screenStack = new Array<>();
 	Paused paused = null;
 
@@ -116,7 +117,7 @@ public class NumbersMaze extends Game {
 
 	private SaveLoadScreen loadGameScreen = null;
 
-	private OnePlayerScreen uOnePlayer;
+	private ScreenBase uOnePlayer;
 
 	@Override
 	public void create() {

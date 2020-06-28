@@ -64,12 +64,10 @@ public class Paused extends ScreenBase {
 
 		displayStyle = new TextButtonStyle(checked, checked, checked, S.getFnt().getFont(fontSize));
 		displayStyle.checkedFontColor = Color.LIGHT_GRAY;
-//		displayStyle.font = S.getFnt().getFont(fontSize);
 		displayStyle.fontColor = Color.DARK_GRAY;
 
 		displayText = new TextButton(msg, displayStyle);
 		displayText.setTouchable(Touchable.enabled);
-
 		displayText.addListener(new ExitScreenClick());
 
 		gameStage.addActor(underlay);
@@ -135,7 +133,7 @@ public class Paused extends ScreenBase {
 		} else {
 			underlay.setScale(scaleY);
 		}
-		underlay.setPosition((stageSize.w - w) / 2, (stageSize.h - h) / 2);
+		underlay.setPosition((mazeStageSize.w - w) / 2, (mazeStageSize.h - h) / 2);
 		underlay.getColor().a = .25f;
 		for (int x = 0; x < w; x += slice) {
 			for (int y = 0; y < h; y += slice) {

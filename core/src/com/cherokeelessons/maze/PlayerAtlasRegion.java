@@ -24,7 +24,7 @@ public class PlayerAtlasRegion {
 		Gdx.app.log(this.getClass().getSimpleName(), "PACKING PLAYER TEXTURES");
 		final PixmapPacker packer = new PixmapPacker(packSize, packSize, Format.RGBA8888, 1, true);
 
-		final String plist_name = "player-64px/plist.txt";
+		final String plist_name = Consts.PLAYER_PLIST;
 		final FileHandle plist = Gdx.files.internal(plist_name);
 		final String list = plist.readString();
 		final ArrayList<String> imgList = new ArrayList<>();
