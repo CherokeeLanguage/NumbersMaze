@@ -1,7 +1,7 @@
 package com.cherokeelessons.maze.screen;
 
-//TODO
 /**
+ * TODO
  * (09:27:15 PM) Michael Joyner: I wonder if the collision routine tells me how much force is on a object when a box is sitting on a box? I could have the little boxes get squished if there is too much weight on top and have it explode.
  * (09:23:10 PM) Michael Joyner: you know an explosion is bad ass when your FPS on a quad core drops to 8
  * (09:23:30 PM) Charles Kauffman: Hah!
@@ -121,16 +121,6 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				NumbersMaze.post(e);
 				return true;
 			}
-//			if (keycode == Keys.CENTER) {
-//				Controller c;
-//				final Array<Controller> controllers = Controllers.getControllers();
-//				if (!controllers.isEmpty()) {
-//					c = controllers.first();
-//				} else {
-//					c = null;
-//				}
-//				return buttonDown(c, Xbox.BUTTON_A);
-//			}
 			return super.keyDown(keycode);
 		}
 	};
@@ -184,11 +174,11 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 	private final Array<Entity> blockList = new Array<>();
 
-	private final Body wallBody = null;
-	private final Entity wallStart = null;
-	private final Body floorBody = null;
+//	private final Body wallBody = null;
+//	private final Entity wallStart = null;
+//	private final Body floorBody = null;
 
-	private final Entity floorStart = null;
+//	private final Entity floorStart = null;
 
 	public boolean ultimate = false;
 
@@ -361,7 +351,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final int tile_v8 = 7;
 		final int tile_v4 = 8;
 		final int tile_v2 = 9;
-		final int tile_block = 2;
+		//final int tile_block = 2;
 		final int tile_portal = 3;
 		final int tile_h2 = 10;
 		final int tile_v3 = 11;
@@ -370,7 +360,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			for (int iy = 0; iy < maze[0].length; iy++) {
 				final MazeCell cell = maze[ix][iy];
 				// Entity tile;
-				final boolean isWestEdge = ix == 0;
+//				final boolean isWestEdge = ix == 0;
 				final boolean isEastEdge = ix + 1 == maze.length;
 				final boolean isNorthEdge = iy + 1 == maze[0].length;
 				final boolean isSouthEdge = iy == 0;
@@ -732,15 +722,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					final Entity tile = new Entity(floor_portal);
 					tile.identity = Entity.PORTAL;
 					thePortal = tile;
-					// tile.setColor(Color.BLUE);
-					// imgList.add(tile);
 
 					tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
-					tile.setScale(2);
+					tile.setScale(1);
 					tile.setOffsetX(-tile.getWidth() / 2);
 					tile.setOffsetY(-tile.getHeight() / 2);
 					tile.setWorldScale(WORLD_TO_BOX);
-					// tile.setScale(.9f);
 					tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
 					tile.layout();
 
@@ -748,7 +735,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					bodyDef.type = BodyType.DynamicBody;
 					bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD,
 							(-16 + iy * tileGrideSize) * BOX_TO_WORLD);
-					final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+//					final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 					final Body body = world.getWorld().createBody(bodyDef);
 					body.setFixedRotation(false);
 					body.setLinearVelocity(new Vector2(0f, 0f));
@@ -919,9 +906,9 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 	}
 
-	private Entity generateBlockTile(final AtlasRegion[] number_tile, final float ix, final float iy,
+	private Entity generateBlockTile(final AtlasRegion[] numberTile, final float ix, final float iy,
 			final int die_face) {
-		final Entity tile = new Entity(number_tile[die_face]);
+		final Entity tile = new Entity(numberTile[die_face]);
 		tile.identity = Entity.BLOCK;
 		tile.value = die_face + 1;
 		if (die_face == 6) {
@@ -979,12 +966,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		return tile;
 	}
 
-	private Entity generateFloorTile(final AtlasRegion floor_tile, final float ix, final float iy, final float w_pix,
+	private Entity generateFloorTile(final AtlasRegion floorTile, final float ix, final float iy, final float w_pix,
 			final float h_pix) {
 		final float px = ix * tileGrideSize + (w_pix - tileGrideSize);
 		final float py = iy * tileGrideSize + (h_pix - tileGrideSize);
 		Entity tile;
-		tile = new Entity(new TiledDrawable(floor_tile));
+		tile = new Entity(new TiledDrawable(floorTile));
 		tile.identity = Entity.FLOOR;
 		// box2d is center of body based, set origin of object to
 		// match
@@ -1000,7 +987,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
 		bodyDef.position.set(px * BOX_TO_WORLD, py * BOX_TO_WORLD);
-		final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		//final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1038,7 +1025,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
 		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy * tileGrideSize * BOX_TO_WORLD);
-		final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		//final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1199,13 +1186,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
 		totalValueLeft = blockListValue + badValue_pending + inLimbo;
 
-		// random death orbs, time gap between is based on level
+		// random death orbs, time gap is random based on level
 		nextOrb -= delta;
 		if (nextOrb < 0f) {
-			nextOrb = MathUtils.random(1f / level) * 60f + DeathOrb.getLifeSpan() / 2000f;
+			nextOrb = MathUtils.random(1f / level) * 5 * 60f + DeathOrb.getLifeSpan() / 2000f;
 			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
-				new DeathOrb(world.getWorld(), player1.getWorldScale(), new_block_pos, 0);
+				@SuppressWarnings("unused")
+				DeathOrb deathOrb = new DeathOrb(world.getWorld(), player1.getWorldScale(), new_block_pos, 0);
 			}
 		}
 

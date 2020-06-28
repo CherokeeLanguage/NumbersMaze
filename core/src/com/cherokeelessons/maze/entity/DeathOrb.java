@@ -110,7 +110,7 @@ public class DeathOrb extends Entity {
 	private final Array<Vector2> ray_point = new Array<>();
 	private final Array<Vector2> ray_normal = new Array<>();
 
-	public DeathOrb(final World world, final float worldScale, final Vector2 worldPos, final int accumulator) {
+	public DeathOrb(final World world, final float worldScale, final Vector2 worldPos, @SuppressWarnings("unused") final int accumulator) {
 		super();
 		identity = Entity.DEATH_ORB;
 		getColor().a = 0f;
@@ -411,33 +411,33 @@ public class DeathOrb extends Entity {
 		bodyDef.type = BodyType.DynamicBody;
 		bodyDef.position.set(worldPos);
 
-		final Body body = world.createBody(bodyDef);
-		setBody(body);
-		resetFixtures(activeRad, body);
-		body.setUserData(this);
-		body.setBullet(true);
-		body.setFixedRotation(true);
-		body.setLinearDamping(1f);
-		body.setAngularDamping(1f);
+		final Body newBody = world.createBody(bodyDef);
+		setBody(newBody);
+		resetFixtures(activeRad, newBody);
+		newBody.setUserData(this);
+		newBody.setBullet(true);
+		newBody.setFixedRotation(true);
+		newBody.setLinearDamping(1f);
+		newBody.setAngularDamping(1f);
 //		body.applyAngularImpulse(.01f);
-		body.setGravityScale(0f);
+		newBody.setGravityScale(0f);
 		setOffsetX(-getWidth() / 2);
 		setOffsetY(-getHeight() / 2);
 		setOriginX(getWidth() / 2);
 		setOriginY(getHeight() / 2);
-		body.setActive(true);
-		body.setLinearVelocity(0f, 0f);
+		newBody.setActive(true);
+		newBody.setLinearVelocity(0f, 0f);
 	}
 
-	private void resetFixtures(final float rad, final Body body) {
+	private void resetFixtures(final float rad, final Body bodyToReset) {
 		final Array<Fixture> f = new Array<>();
-		f.addAll(body.getFixtureList());
+		f.addAll(bodyToReset.getFixtureList());
 		for (final Fixture fix : f) {
-			body.destroyFixture(fix);
+			bodyToReset.destroyFixture(fix);
 		}
 		CircleShape circle;
 		FixtureDef fDef;
-		final Vector2 offset = new Vector2(rad * 2, 0);
+		//final Vector2 offset = new Vector2(rad * 2, 0);
 
 		circle = new CircleShape();
 		circle.setRadius(rad);
@@ -450,7 +450,7 @@ public class DeathOrb extends Entity {
 		fDef.filter.categoryBits = TheWorld.TYPE_ENEMY;
 		fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER
 				^ TheWorld.TYPE_ENEMY);
-		body.createFixture(fDef);
+		bodyToReset.createFixture(fDef);
 		circle.dispose();
 	}
 }
