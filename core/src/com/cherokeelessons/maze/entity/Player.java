@@ -366,6 +366,8 @@ public class Player extends Entity {
 					dieDeck.removeRange(3, dieDeck.size-1);
 				}
 				
+				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
+				
 				dieDeck.shuffle();
 			}
 			gbv = dieDeck.removeIndex(0);
