@@ -346,16 +346,26 @@ public class Player extends Entity {
 		}
 		do {
 			if (dieDeck.size == 0) {
-				int sides = 6;
-				if (badAccumulator > 30 && maxFaceValue > 30) {
-					sides = 7;
+				int sides = 8;
+				for (int i = 1; i <= sides; i++) {
+					if (i==7 && 20 > badAccumulator) {
+						continue;
+					}
+					if (i==8 && 80 > badAccumulator) {
+						continue;
+					}
+					if (i > badAccumulator) {
+						continue;
+					}
+					dieDeck.add(i);
 				}
-				if (badAccumulator > 100 && maxFaceValue > 100) {
-					sides = 8;
+				dieDeck.sort();
+				dieDeck.reverse();
+				
+				if (new Random().nextInt(100) > 10 && dieDeck.size>3) {
+					dieDeck.removeRange(3, dieDeck.size-1);
 				}
-				for (int i = 0; i < sides; i++) {
-					dieDeck.add(i + 1);
-				}
+				
 				dieDeck.shuffle();
 			}
 			gbv = dieDeck.removeIndex(0);
