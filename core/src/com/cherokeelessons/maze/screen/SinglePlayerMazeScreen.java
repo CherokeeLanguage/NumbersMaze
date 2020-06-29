@@ -154,6 +154,9 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	private int lastChallenge = 0;
 	private final SetMicPos smp = new SetMicPos();
 
+	/**
+	 * How long before spawning a death orb. (Seconds).
+	 */
 	private float nextOrb = 0;
 
 	private long simStart = 0;
@@ -1186,10 +1189,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
 		totalValueLeft = blockListValue + badValue_pending + inLimbo;
 
-		// random death orbs, time gap is random based on level
+		// random death orbs, time gap is random based on level with a minimum gap
 		nextOrb -= delta;
 		if (nextOrb < 0f) {
-			nextOrb = MathUtils.random(1f / level) * 5 * 60f + DeathOrb.getLifeSpan() / 2000f;
+			nextOrb = Math.max(MathUtils.random(1f / level) * 5 * 60f, (DeathOrb.getLifeSpan()*2)/1000);
 			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
 				@SuppressWarnings("unused")

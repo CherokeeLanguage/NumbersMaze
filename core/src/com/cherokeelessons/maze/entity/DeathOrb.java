@@ -72,14 +72,14 @@ public class DeathOrb extends Entity {
 	}
 
 	private static AtlasRegion[] atlas = null;
-	final private static long lifeSpan = 64000;
+	final private static long DEATH_ORB_LIFE_SPAN = 8000;
 
 	public static AtlasRegion[] getAtlas() {
 		return atlas;
 	}
 
 	public static long getLifeSpan() {
-		return lifeSpan;
+		return DEATH_ORB_LIFE_SPAN;
 	}
 
 	public static void setAtlas(final AtlasRegion[] atlas) {
@@ -124,7 +124,7 @@ public class DeathOrb extends Entity {
 		pack();
 		addToWorld(world, worldPos);
 		updatePosition(true);
-		expires = System.currentTimeMillis() + lifeSpan;
+		expires = System.currentTimeMillis() + DEATH_ORB_LIFE_SPAN;
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class DeathOrb extends Entity {
 			start = System.currentTimeMillis() - tick;
 		}
 		activeFrame = (int) (tick * totalFrames / totalAnimTime);
-		final float newAlpha = (expires - System.currentTimeMillis()) / (float) lifeSpan;
+		final float newAlpha = (expires - System.currentTimeMillis()) / (float) DEATH_ORB_LIFE_SPAN;
 		getColor().a = newAlpha * .65f + .35f;
 		if (lastFrame != activeFrame) {
 			setDrawable(trd[activeFrame]);
@@ -461,7 +461,6 @@ public class DeathOrb extends Entity {
 
 	@Override
 	protected short sensorMaskBits() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
