@@ -18,12 +18,6 @@ public class WallFixture extends Entity {
 	}
 
 	@Override
-	public void act(final float delta) {
-		// TODO Auto-generated method stub
-		super.act(delta);
-	}
-
-	@Override
 	public void cullCheck() {
 		if (body == null || fixture == null) {
 			return;
@@ -46,12 +40,6 @@ public class WallFixture extends Entity {
 		return fixtureOffset;
 	}
 
-	@Override
-	public boolean remove(final boolean fromWorldAlso) {
-		// TODO Auto-generated method stub
-		return super.remove(fromWorldAlso);
-	}
-
 	public void setFixture(final Fixture fixture) {
 		this.fixture = fixture;
 		this.fixture.setUserData(this);
@@ -72,6 +60,21 @@ public class WallFixture extends Entity {
 			setRotation(angle);
 			layout();
 		}
+	}
+
+	@Override
+	protected short maskBits() {
+		return 0;
+	}
+
+	@Override
+	protected short sensorMaskBits() {
+		return 0;
+	}
+
+	@Override
+	protected short categoryBits() {
+		return 0;
 	}
 
 }

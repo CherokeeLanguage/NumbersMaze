@@ -44,8 +44,6 @@ public class Player extends Entity {
 	private boolean prev_btn_x = false;
 	private boolean prev_btn_a = false;
 	private boolean toggledOn = false;
-//	private boolean toggledOff = false;
-//	private final int arrows = 10;
 
 	final private Vector2 aabb_size = new Vector2();
 
@@ -59,7 +57,7 @@ public class Player extends Entity {
 
 	private AtlasRegion[][] ar;
 
-	private final ArrayList<ArrowGroup> arrow_tracker = new ArrayList<>();
+	private final ArrayList<ArrowGroup> arrowGroupTracker = new ArrayList<>();
 	private int lastDir = -1;
 
 	private final int lastX = -1;
@@ -93,8 +91,8 @@ public class Player extends Entity {
 			return;
 		}
 
-		for (int ix = arrow_tracker.size() - 1; ix >= 0; ix--) {
-			final ArrowGroup arrowGroup = arrow_tracker.get(ix);
+		for (int ix = arrowGroupTracker.size() - 1; ix >= 0; ix--) {
+			final ArrowGroup arrowGroup = arrowGroupTracker.get(ix);
 			if (arrowGroup.group.getChildren().size < 1) {
 				if (arrowGroup.boxCount > 0) {
 					if (arrowGroup.accumulator == theChallenge) {
@@ -114,7 +112,7 @@ public class Player extends Entity {
 					}
 				}
 				arrowGroup.group.remove();
-				arrow_tracker.remove(ix);
+				arrowGroupTracker.remove(ix);
 			}
 		}
 
@@ -248,37 +246,60 @@ public class Player extends Entity {
 		body.applyLinearImpulse(impulse, worldCenter, true);
 
 		if (gamepad.btn_a && !prev_btn_a) {
-			final Vector2 ff = new Vector2(2f, 0f);
+			final Vector2 fireImpulse;
 			switch (lastDir) {
 			case EAST:
+				 fireImpulse = new Vector2(4f, 0f);
 				break;
 			case WEST:
-				ff.rotate(180);
+				fireImpulse = new Vector2(4f, 0f);
+				fireImpulse.rotate(180);
 				break;
 			case NORTH:
-				ff.rotate(90);
+				fireImpulse = new Vector2(8f, 0f);
+				fireImpulse.rotate(90);
 				break;
 			case SOUTH:
-				ff.rotate(-90);
+				fireImpulse = new Vector2(1f, 0f);
+				fireImpulse.rotate(-90);
 				break;
 			default:
+				fireImpulse = new Vector2(1f, 0f);
 				break;
 			}
 			// ff.add();
 			final ArrowGroup arrowGroup = new ArrowGroup();
-			final Arrow a = new Arrow();
-			a.setWorldScale(worldScale);
-			arrowGroup.group.addActor(a);
-			getStage().addActor(arrowGroup.group);
-			a.addToWorld(body.getWorld(), body.getWorldCenter(), arrowGroup);
-			a.body.setLinearVelocity(body.getLinearVelocity());
-			a.fire(ff);
-			a.toFront();
-			arrow_tracker.add(arrowGroup);
+			arrowGroupTracker.add(arrowGroup);
+			
+//			addArrow(arrowGroup, ff);
+			addBoom(arrowGroup, fireImpulse);
 		}
 
 		prev_btn_x = gamepad.btn_x;
 		prev_btn_a = gamepad.btn_a;
+	}
+
+	private void addArrow(final ArrowGroup arrowGroup, final Vector2 arrowImpulse) {
+		final Arrow a = new Arrow();
+		a.setWorldScale(worldScale);
+		arrowGroup.group.addActor(a);
+		getStage().addActor(arrowGroup.group);
+		a.addToWorld(body.getWorld(), body.getWorldCenter(), arrowGroup);
+		a.body.setLinearVelocity(body.getLinearVelocity());
+		a.fire(arrowImpulse);
+		a.toFront();
+	}
+	
+	private void addBoom(final ArrowGroup arrowGroup, final Vector2 boomImpulse) {
+		final PlayerBoom a = new PlayerBoom(arrowGroup);
+		a.setWorldScale(worldScale);
+		arrowGroup.group.addActor(a);
+		getStage().addActor(arrowGroup.group);
+		a.addToWorld(body.getWorld(), body.getWorldCenter(), boomImpulse);
+		a.setOwner(arrowGroup);
+		a.body.setLinearVelocity(body.getLinearVelocity().cpy().scl(4f));
+		a.fire(boomImpulse);		
+		a.toFront();
 	}
 
 	public void addToPendingScore(final int addToScore) {
@@ -377,8 +398,8 @@ public class Player extends Entity {
 
 	public int pointsInLimbo() {
 		int total = 0;
-		for (int ix = arrow_tracker.size() - 1; ix >= 0; ix--) {
-			total += arrow_tracker.get(ix).accumulator;
+		for (int ix = arrowGroupTracker.size() - 1; ix >= 0; ix--) {
+			total += arrowGroupTracker.get(ix).accumulator;
 		}
 		return total;
 	}
@@ -417,8 +438,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// BC
 			circle.setPosition(new Vector2(w / 2, h - rad));
@@ -427,8 +448,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// LC
 			circle.setPosition(new Vector2(rad, h / 2));
@@ -437,8 +458,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// RC
 			circle.setPosition(new Vector2(w - rad, h / 2));
@@ -447,8 +468,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// TL
 			circle.setPosition(new Vector2(rad, rad));
@@ -457,8 +478,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// TR
 			circle.setPosition(new Vector2(w - rad, rad));
@@ -467,8 +488,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// BL
 			circle.setPosition(new Vector2(rad, h - rad));
@@ -477,8 +498,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			// BR
 			circle.setPosition(new Vector2(w - rad, h - rad));
@@ -487,8 +508,8 @@ public class Player extends Entity {
 			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
-			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
-			fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+			fDef.filter.categoryBits = categoryBits();
+			fDef.filter.maskBits = maskBits();
 			body.createFixture(fDef);
 			circle.dispose();
 		}
@@ -544,5 +565,20 @@ public class Player extends Entity {
 		} else {
 			Gdx.app.log(this.getClass().getSimpleName(), "DIR IS NULL: " + dir + ", i: " + i);
 		}
+	}
+
+	@Override
+	protected short maskBits() {
+		return (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_BLOCK);
+	}
+
+	@Override
+	protected short sensorMaskBits() {
+		return 0;
+	}
+
+	@Override
+	protected short categoryBits() {
+		return TheWorld.TYPE_PLAYER;
 	}
 }

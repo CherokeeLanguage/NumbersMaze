@@ -335,9 +335,25 @@ public class Entity extends Image {
 		}
 	}
 
-	public void updatePosition(final boolean forceLayout) {
-		this.forceLayout = forceLayout;
+	public void updatePosition(final boolean doForceLayout) {
+		this.forceLayout = doForceLayout;
 		updatePosition();
+	}
+
+	protected short maskBits() {
+		return -1;
+	}
+
+	protected short sensorMaskBits() {
+		return maskBits();
+	}
+
+	protected short categoryBits() {
+		return 1;
+	}
+
+	protected short sensorCategoryBits() {
+		return categoryBits();
 	}
 
 }

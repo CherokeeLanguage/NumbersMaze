@@ -447,10 +447,26 @@ public class DeathOrb extends Entity {
 		fDef.friction = 0f;
 		fDef.restitution = 1f;
 		fDef.shape = circle;
-		fDef.filter.categoryBits = TheWorld.TYPE_ENEMY;
-		fDef.filter.maskBits = (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER
-				^ TheWorld.TYPE_ENEMY);
+		fDef.filter.categoryBits = categoryBits();
+		fDef.filter.maskBits = maskBits();
 		bodyToReset.createFixture(fDef);
 		circle.dispose();
+	}
+
+	@Override
+	protected short maskBits() {
+		return (short) (TheWorld.TYPE_ALL ^ TheWorld.TYPE_FLOOR ^ TheWorld.TYPE_PLAYER
+				^ TheWorld.TYPE_ENEMY);
+	}
+
+	@Override
+	protected short sensorMaskBits() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected short categoryBits() {
+		return TheWorld.TYPE_ENEMY;
 	}
 }

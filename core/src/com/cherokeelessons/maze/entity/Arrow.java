@@ -106,12 +106,12 @@ public class Arrow extends Entity {
 		fDef.friction = 0f;
 		fDef.restitution = -1f;
 		fDef.shape = box;
-		fDef.filter.categoryBits = TheWorld.TYPE_ARROW;
-		fDef.filter.maskBits = (short) (TheWorld.TYPE_EXPLOSION | TheWorld.TYPE_ARROW | TheWorld.TYPE_BLOCK
-				| TheWorld.TYPE_SENSOR | TheWorld.TYPE_WALL);
+		fDef.filter.categoryBits = categoryBits();
+		fDef.filter.maskBits = maskBits();
 		newBody.createFixture(fDef);
-		newBody.setUserData(this);
 		box.dispose();
+		
+		newBody.setUserData(this);
 		newBody.setBullet(true);
 		newBody.setFixedRotation(false);
 		newBody.setLinearVelocity(new Vector2(0f, 0f));
@@ -122,6 +122,17 @@ public class Arrow extends Entity {
 		setOffsetY(-getHeight() / 2);
 		setOriginX(getWidth() / 2);
 		setOriginY(getHeight() / 2);
+	}
+
+	@Override
+	protected short categoryBits() {
+		return TheWorld.TYPE_ARROW;
+	}
+
+	@Override
+	protected short maskBits() {
+		return (short) (TheWorld.TYPE_EXPLOSION | TheWorld.TYPE_ARROW | TheWorld.TYPE_BLOCK
+				| TheWorld.TYPE_SENSOR | TheWorld.TYPE_WALL);
 	}
 
 	public void fire(final Vector2 impulse) {
@@ -140,5 +151,4 @@ public class Arrow extends Entity {
 	public void setOwner(final ArrowGroup owner) {
 		this.owner = owner;
 	}
-
 }
