@@ -33,7 +33,6 @@ public class Player extends Entity {
 	final public static int SOUTH = 3;
 	public BitmapFont scoreFont = null;
 
-	private final float avatarScale = 1f; //.8f;
 	private final Random r = new Random();
 	public int theChallenge = 1;
 	public int myScore = 0;
@@ -411,12 +410,11 @@ public class Player extends Entity {
 			final CircleShape circle = new CircleShape();
 			circle.setRadius(rad);
 
-			final float div = avatarScale * avatarScale;
 			// TC
 			circle.setPosition(new Vector2(w / 2, rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -426,7 +424,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(w / 2, h - rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -436,7 +434,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(rad, h / 2));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -446,7 +444,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(w - rad, h / 2));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -456,7 +454,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(rad, rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -466,7 +464,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(w - rad, rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -476,7 +474,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(rad, h - rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -486,7 +484,7 @@ public class Player extends Entity {
 			circle.setPosition(new Vector2(w - rad, h - rad));
 			fDef = new FixtureDef();
 			fDef.shape = circle;
-			fDef.density = 0.1f / div;
+			fDef.density = 0.2f;
 			fDef.friction = 0;
 			fDef.restitution = 0f;
 			fDef.filter.categoryBits = TheWorld.TYPE_PLAYER;
@@ -540,10 +538,9 @@ public class Player extends Entity {
 			final int regionHeight = d.getRegion().getRegionHeight();
 			setHeight(regionHeight);
 			setOrigin(regionWidth / 2, regionHeight / 2);
-			setScale(avatarScale);
 			setOffsetX(-regionWidth / 2);
 			setOffsetY(-regionHeight / 2);
-			resetFixtures(regionWidth * avatarScale, regionHeight * avatarScale);
+			resetFixtures(regionWidth , regionHeight);
 		} else {
 			Gdx.app.log(this.getClass().getSimpleName(), "DIR IS NULL: " + dir + ", i: " + i);
 		}
