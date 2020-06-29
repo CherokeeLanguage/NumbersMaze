@@ -45,8 +45,8 @@ public class Player extends Entity {
 	private boolean prev_btn_x = false;
 	private boolean prev_btn_a = false;
 	private boolean toggledOn = false;
-	private boolean toggledOff = false;
-	private final int arrows = 10;
+//	private boolean toggledOff = false;
+//	private final int arrows = 10;
 
 	final private Vector2 aabb_size = new Vector2();
 
@@ -120,12 +120,12 @@ public class Player extends Entity {
 		}
 
 		toggledOn = false;
-		toggledOff = false;
+//		toggledOff = false;
 		if (!prev_btn_x && gamepad.btn_x) {
 			toggledOn = true;
 		}
 		if (prev_btn_x && !gamepad.btn_x) {
-			toggledOff = true;
+//			toggledOff = true;
 		}
 
 		aabb_lower.x = worldCenter.x - aabb_size.x / 2;
@@ -211,11 +211,14 @@ public class Player extends Entity {
 			joint = null;
 		}
 
-		impulse.x = 0.75f * gamepad.deltaX;
-		impulse.y = 0.75f * gamepad.deltaY;
+//		impulse.x = 0.75f * gamepad.deltaX;
+//		impulse.y = 0.75f * gamepad.deltaY;
 		
-		impulse.x = 1f * gamepad.deltaX;
-		impulse.y = 1f * gamepad.deltaY;
+		impulse.x = 0.7f * gamepad.deltaX;
+		impulse.y = 0.7f * gamepad.deltaY;
+		
+//		impulse.x = 1f * gamepad.deltaX;
+//		impulse.y = 1f * gamepad.deltaY;
 
 		// change graphic and such to match new movement impulse
 		// determine direction based on magnitude and update texture being
@@ -259,6 +262,8 @@ public class Player extends Entity {
 			case SOUTH:
 				ff.rotate(-90);
 				break;
+			default:
+				break;
 			}
 			// ff.add();
 			final ArrowGroup arrowGroup = new ArrowGroup();
@@ -277,9 +282,9 @@ public class Player extends Entity {
 		prev_btn_a = gamepad.btn_a;
 	}
 
-	public void addToPendingScore(final int pendingScore) {
+	public void addToPendingScore(final int addToScore) {
 		synchronized (this) {
-			this.pendingScore += pendingScore;
+			this.pendingScore += addToScore;
 		}
 	}
 
@@ -302,8 +307,8 @@ public class Player extends Entity {
 		joint = null;
 	}
 
-	public void badValue_add(final int value) {
-		badAccumulator += value;
+	public void badValue_add(final int addValue) {
+		badAccumulator += addValue;
 	}
 
 	public void badValue_clear() {
@@ -359,12 +364,12 @@ public class Player extends Entity {
 	}
 
 	public int getPendingScoreAndZeroOut() {
-		int r;
+		int tmp;
 		synchronized (this) {
-			r = pendingScore;
+			tmp = pendingScore;
 			pendingScore = 0;
 		}
-		return r;
+		return tmp;
 	}
 
 	public boolean pendingArrows() {

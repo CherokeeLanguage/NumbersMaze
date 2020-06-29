@@ -6,10 +6,10 @@
 
 cd "$(dirname "$0")" || exit 1
 
-height=58
+height=48
 
 F1="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf"
-DEST=player-58px
+DEST=player-${height}px
 SRC=player-32px
 if [ ! -d "${DEST}" ]; then
 	mkdir "${DEST}"
