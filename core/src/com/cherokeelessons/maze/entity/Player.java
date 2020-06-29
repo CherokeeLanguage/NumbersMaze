@@ -357,6 +357,9 @@ public class Player extends Entity {
 					if (i > badAccumulator) {
 						continue;
 					}
+					if (i > maxFaceValue) {
+						continue;
+					}
 					dieDeck.add(i);
 				}
 				dieDeck.sort();
