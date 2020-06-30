@@ -110,10 +110,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	private final Array<Vector2> numberPortal = new Array<>();
 	private String activeSong = null;
 	private final PlayerInput gamepadInput = new PlayerInput() {
-		
+
 		@Override
 		public boolean keyDown(int keycode) {
-			System.out.println("SinglePlayerMaze.java#PlayerInput#keyDown: "+keycode);
+			System.out.println("SinglePlayerMaze.java#PlayerInput#keyDown: " + keycode);
 			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
 				final ScreenChangeEvent e = new ScreenChangeEvent();
 				e.data.put(data);
@@ -176,12 +176,6 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	AtlasRegion[] number_tile = null;
 
 	private final Array<Entity> blockList = new Array<>();
-
-//	private final Body wallBody = null;
-//	private final Entity wallStart = null;
-//	private final Body floorBody = null;
-
-//	private final Entity floorStart = null;
 
 	public boolean ultimate = false;
 
@@ -299,7 +293,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		if (maxFaceValue < 1) {
 			maxFaceValue = 1;
 		}
-		final Random number_tile_random = new Random(mazeNumber);
+		final Random rand = new Random(mazeNumber);
 
 		number_tile = new AtlasRegion[8];
 		number_tile[0] = S.getArg().findRegion("d1");
@@ -330,8 +324,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		initialPortal.clear();
 		numberPortal.clear();
 
-		mazeW = mazeNumber/3 + 7;
-		mazeH = mazeNumber/3 + 4;
+		mazeW = mazeNumber / 3 + 7;
+		mazeH = mazeNumber / 3 + 4;
 		if (mazeW > 16) {
 			mazeW = 16 + mazeNumber / 16;
 		}
@@ -354,7 +348,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final int tile_v8 = 7;
 		final int tile_v4 = 8;
 		final int tile_v2 = 9;
-		//final int tile_block = 2;
+		// final int tile_block = 2;
 		final int tile_portal = 3;
 		final int tile_h2 = 10;
 		final int tile_v3 = 11;
@@ -767,25 +761,41 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			}
 		}
 		// create and place the initial number blocks
+		log("=== Initial Dice Placement");
+		log("--- count: "+initialPortal.size);
+		log("--- max face value: "+maxFaceValue);
 		for (int ix = 0; ix < initialPortal.size; ix++) {
 			final Vector2 pos = initialPortal.get(ix);
-			int die_face;
-			if (maxFaceValue < 20) {
-				do {
-					die_face = number_tile_random.nextInt(6);
-					if (level == 1 && ix == 0) {
-						die_face = 0;
-					}
-				} while (die_face >= maxFaceValue);
-			} else if (maxFaceValue < 80) {
-				die_face = number_tile_random.nextInt(7);
+
+			int dieFace;
+
+			if (maxFaceValue>=80) {
+				dieFace = rand.nextInt(8);
+			} else if (maxFaceValue>=20) {
+				dieFace = rand.nextInt(7);
 			} else {
-				die_face = number_tile_random.nextInt(8);
+				dieFace = rand.nextInt(Math.min(maxFaceValue, 6));
 			}
-			final Entity tile = generateBlockTile(number_tile, pos.x, pos.y, die_face);
+			if (level == 1 && ix == 0) {
+				dieFace = 0;
+			}
+			int dieValue=dieFace;
+			if (dieFace==6) {
+				dieValue=20;
+			}
+			if (dieFace==7) {
+				dieValue=80;
+			}
+			
+			if (getBlocklistSum(blockList)+dieValue>getChallengeSum()) {
+				continue;
+			}
+
+			final Entity tile = generateBlockTile(number_tile, pos.x, pos.y, dieFace);
 			imgList.add(tile);
 			blockList.add(tile);
 		}
+		world.setBadAccumulator(0);
 		tiles.setTransform(false);
 		tiles.clear();
 		for (int i = 0; i < imgList.size; i++) {
@@ -793,6 +803,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			x.setCull(culler);
 			tiles.addActor(x);
 		}
+	}
+
+	private void log(String message) {
+		Gdx.app.log(this.getClass().getSimpleName(), message);
 	}
 
 	private void calculateChallengeList(int challengeLevel) {
@@ -990,7 +1004,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
 		bodyDef.position.set(px * BOX_TO_WORLD, py * BOX_TO_WORLD);
-		//final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		// final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1028,7 +1042,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.StaticBody;
 		bodyDef.position.set(ix * tileGrideSize * BOX_TO_WORLD, iy * tileGrideSize * BOX_TO_WORLD);
-		//final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
+		// final float rad = tile.getWidth() * BOX_TO_WORLD / 2;
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1051,23 +1065,31 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	private int getMaxChallenge() {
-		int m = 0;
+		int max = 0;
 		for (final Integer i : challengeList) {
-			if (i > m) {
-				m = i;
+			if (i > max) {
+				max = i;
 			}
 		}
-		return m;
+		return max;
 	}
-	
-	private int getMinChallenge() {
-		int m = Integer.MAX_VALUE;
+
+	private int getChallengeSum() {
+		int sum = 0;
 		for (final Integer i : challengeList) {
-			if (i < m) {
-				m = i;
+			sum += i;
+		}
+		return sum;
+	}
+
+	private int getMinChallenge() {
+		int min = Integer.MAX_VALUE;
+		for (final Integer i : challengeList) {
+			if (i < min) {
+				min = i;
 			}
 		}
-		return m;
+		return min;
 	}
 
 	private int getSecondsLeft() {
@@ -1075,7 +1097,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		return (int) remainingTime / 1000;
 	}
 
-	private int getValue(final Array<Entity> g) {
+	private int getBlocklistSum(final Array<Entity> g) {
 		int value = 0;
 		for (final Entity e : g) {
 			if (e.identity == Entity.BLOCK) {
@@ -1194,7 +1216,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 
 		world.processOrphans(gameStage);
-		final int blockListValue = getValue(blockList);
+		final int blockListValue = getBlocklistSum(blockList);
 		final int inLimbo = player1.pointsInLimbo() + world.pointsInLimbo();
 		final int badValue_pending = player1.badValue_getPending() + world.getBadAccumulator();
 		totalValueLeft = blockListValue + badValue_pending + inLimbo;
@@ -1311,7 +1333,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		player1.badValue_clear();
 		hud.addActor(label_level);
 		label_level.setY(overscan.y);
-		final int blockListValue = getValue(blockList);
+		final int blockListValue = getBlocklistSum(blockList);
 		maxInPlay = blockListValue;
 		if (blockListValue < challengeTotalValue) {
 			player1.badValue_add(challengeTotalValue - blockListValue);

@@ -226,10 +226,10 @@ public class TheWorld {
 					}
 					dieDeck.add(i);
 				}
-				dieDeck.sort();
-				dieDeck.reverse();
 				
-				if (new Random().nextInt(100) > 10 && dieDeck.size>3 && minFaceValue>6) {
+				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 10) {
+					dieDeck.sort();
+					dieDeck.reverse();
 					dieDeck.removeRange(3, dieDeck.size-1);
 				}
 				
