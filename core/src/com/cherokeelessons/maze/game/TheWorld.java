@@ -227,7 +227,7 @@ public class TheWorld {
 					dieDeck.add(i);
 				}
 				
-				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 10) {
+				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 30) {
 					dieDeck.sort();
 					dieDeck.reverse();
 					dieDeck.removeRange(3, dieDeck.size-1);
