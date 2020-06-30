@@ -72,13 +72,13 @@ public class DeathOrb extends Entity {
 	}
 
 	private static AtlasRegion[] atlas = null;
-	final private static long DEATH_ORB_LIFE_SPAN = 8000;
+	private static final float DEATH_ORB_LIFE_SPAN = 16f;
 
 	public static AtlasRegion[] getAtlas() {
 		return atlas;
 	}
 
-	public static long getLifeSpan() {
+	public static float getLifeSpan() {
 		return DEATH_ORB_LIFE_SPAN;
 	}
 
@@ -92,7 +92,7 @@ public class DeathOrb extends Entity {
 
 	final private long totalAnimTime = 2600;
 
-	private long expires = 0;
+	private float expires = 0f;
 	private float finalRad = 0f;
 	private float activeRad = 0f;
 
@@ -124,23 +124,24 @@ public class DeathOrb extends Entity {
 		pack();
 		addToWorld(world, worldPos);
 		updatePosition(true);
-		expires = System.currentTimeMillis() + DEATH_ORB_LIFE_SPAN;
+		expires = DEATH_ORB_LIFE_SPAN;
 	}
 
 	@Override
 	public void act(final float delta) {
-		if (System.currentTimeMillis() > expires) {
+		super.act(delta);
+		expires -= delta;
+		if (expires <= 0) {
 			remove(true);
 			return;
 		}
-		super.act(delta);
 		long tick = System.currentTimeMillis() - start;
 		if (tick >= totalAnimTime) {
 			tick = tick % totalAnimTime;
 			start = System.currentTimeMillis() - tick;
 		}
 		activeFrame = (int) (tick * totalFrames / totalAnimTime);
-		final float newAlpha = (expires - System.currentTimeMillis()) / (float) DEATH_ORB_LIFE_SPAN;
+		final float newAlpha = expires / DEATH_ORB_LIFE_SPAN;
 		getColor().a = newAlpha * .65f + .35f;
 		if (lastFrame != activeFrame) {
 			setDrawable(trd[activeFrame]);
