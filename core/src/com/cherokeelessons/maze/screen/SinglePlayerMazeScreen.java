@@ -117,7 +117,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			if (keycode == Keys.BACK || keycode == Keys.ESCAPE) {
 				final ScreenChangeEvent e = new ScreenChangeEvent();
 				e.data.put(data);
-				e.screen = ScreenList.MainMenu;
+				e.screen = ScreenList.MAIN_MENU;
 				NumbersMaze.post(e);
 				return true;
 			}
@@ -208,7 +208,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		backDrop.getRoot().setTransform(false);
 
 		final BitmapFont f1 = S.getFnt().getFont(40);
-		final BitmapFont f2 = S.getFnt().getFont(20);
+		final BitmapFont f2 = S.getFnt().getFont(28);
 
 		final LabelStyle ls = new LabelStyle(f2, new Color(Color.DARK_GRAY));
 		final AtlasRegion ll_ar = S.getArg().findRegion("block_ltblue");
@@ -217,7 +217,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		final AtlasRegion infoStyle_ar = S.getArg().findRegion("block_ltblue");
 		final NinePatch infoStyle_9 = new NinePatch(infoStyle_ar, 12, 12, 12, 12);
-		final LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.RED));
+		final LabelStyle infoStyle = new LabelStyle(S.getFnt().getFont(28), new Color(Color.BLACK));
 		infoStyle.background = new NinePatchDrawable(infoStyle_9);
 
 		label_level = new Label(levelInfoText(), ls);
@@ -292,7 +292,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		tickOffset = System.currentTimeMillis();
 		gameStage_camera = gameStage.getCamera();
 
-		nextOrb = DeathOrb.getLifeSpan() / 1000f;
+		nextOrb = MathUtils.random(30, 300); // minute
 	}
 
 	private void addMazeToStage(final int mazeNumber, int maxFaceValue) {
@@ -330,8 +330,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		initialPortal.clear();
 		numberPortal.clear();
 
-		mazeW = mazeNumber + 6;
-		mazeH = mazeNumber + 3;
+		mazeW = mazeNumber/3 + 7;
+		mazeH = mazeNumber/3 + 4;
 		if (mazeW > 16) {
 			mazeW = 16 + mazeNumber / 16;
 		}
@@ -770,14 +770,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		for (int ix = 0; ix < initialPortal.size; ix++) {
 			final Vector2 pos = initialPortal.get(ix);
 			int die_face;
-			if (maxFaceValue < 30) {
+			if (maxFaceValue < 20) {
 				do {
 					die_face = number_tile_random.nextInt(6);
 					if (level == 1 && ix == 0) {
 						die_face = 0;
 					}
 				} while (die_face >= maxFaceValue);
-			} else if (maxFaceValue < 100) {
+			} else if (maxFaceValue < 80) {
 				die_face = number_tile_random.nextInt(7);
 			} else {
 				die_face = number_tile_random.nextInt(8);
@@ -1059,6 +1059,16 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 		return m;
 	}
+	
+	private int getMinChallenge() {
+		int m = Integer.MAX_VALUE;
+		for (final Integer i : challengeList) {
+			if (i < m) {
+				m = i;
+			}
+		}
+		return m;
+	}
 
 	private int getSecondsLeft() {
 		final long remainingTime = timelimit - (System.currentTimeMillis() - startTime);
@@ -1192,7 +1202,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		// random death orbs, time gap is random based on level with a minimum gap
 		nextOrb -= delta;
 		if (nextOrb < 0f) {
-			nextOrb = Math.max(MathUtils.random(1f / level) * 5 * 60f, (DeathOrb.getLifeSpan()*2)/1000);
+			nextOrb = MathUtils.random(1f / level * 5 * 60f, 10 * 60f + 1);
 			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
 				@SuppressWarnings("unused")
@@ -1200,12 +1210,13 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			}
 		}
 
-		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 500) {
+		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 750) {
 			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
 				final int maxFaceValue = getMaxChallenge();
+				final int minFaceValue = getMinChallenge();
 				if (player1.badValue_hasPending()) {
-					final int dieValue = player1.badValue_getNext(maxFaceValue);
+					final int dieValue = player1.badValue_getNext(minFaceValue, maxFaceValue);
 					int dieFace = dieValue;
 					if (dieFace == 20) {
 						dieFace = 7;
@@ -1216,7 +1227,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					final Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
 					blockList.add(tile);
 				} else if (world.badValue_hasPending()) {
-					final int dieValue = world.badValue_getNext(maxFaceValue);
+					final int dieValue = world.badValue_getNext(minFaceValue, maxFaceValue);
 					int dieFace = dieValue;
 					if (dieFace == 20) {
 						dieFace = 7;
@@ -1264,10 +1275,19 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 							theScore += getSecondsLeft();
 						}
 						final ScreenChangeEvent e1 = new ScreenChangeEvent();
+						final int ix = data.getInteger("slot", 0);
+						e1.data.putInteger("slot", ix);
 						e1.data.putInteger("level", level + 1);
 						e1.data.putInteger("score", theScore);
 						e1.data.putBoolean("ultimate", ultimate);
-						e1.screen = ScreenList.OnePlayer;
+						GameSlot slot = NumbersMaze.loadSlot(ix);
+						slot.setLevel(level + 1);
+						slot.setModified(System.currentTimeMillis());
+						slot.setScore(theScore);
+						slot.setSlot(ix);
+						slot.setUltimate(ultimate);
+						NumbersMaze.saveSlot(slot);
+						e1.screen = ScreenList.RESUME_GAME;
 						NumbersMaze.post(e1);
 						return;
 					}

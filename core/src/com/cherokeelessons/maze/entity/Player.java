@@ -335,7 +335,7 @@ public class Player extends Entity {
 		badAccumulator = 0;
 	}
 
-	public int badValue_getNext(final int maxFaceValue) {
+	public int badValue_getNext(final int minFaceValue, final int maxFaceValue) {
 		int gbv = 0;
 		if (badAccumulator < 1) {
 			return 0;
@@ -365,13 +365,16 @@ public class Player extends Entity {
 				dieDeck.sort();
 				dieDeck.reverse();
 				
-				if (new Random().nextInt(100) > 10 && dieDeck.size>3) {
+				if (new Random().nextInt(100) > 10 && dieDeck.size>3 && minFaceValue>6) {
 					dieDeck.removeRange(3, dieDeck.size-1);
 				}
 				
 				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
 				
 				dieDeck.shuffle();
+			}
+			if (dieDeck.isEmpty()) {
+				return 0;
 			}
 			gbv = dieDeck.removeIndex(0);
 			// convert die face into VALUE

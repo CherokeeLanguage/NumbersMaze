@@ -136,27 +136,20 @@ public class MainMenu extends ScreenBase {
 			// these numbers must match the arraylist indexes the items sit under!
 			switch (menu_item) {
 			case 0:
-				e.data.putInteger("level", 1);
-				e.data.putInteger("score", 0);
-				e.data.putBoolean("ultimate", false);
-				e.screen = ScreenList.OnePlayer;
+				e.screen = ScreenList.LOAD_GAME_SLOT;
 				NumbersMaze.post(e);
 				break;
 			case 1:
-				e.screen = ScreenList.LoadGame;
-				NumbersMaze.post(e);
-				break;
-			case 2:
 				e.data.putInteger("level", 50);
 				e.data.putInteger("score", 0);
 				e.data.putBoolean("ultimate", true);
-				e.screen = ScreenList.OnePlayer;
+				e.screen = ScreenList.LEVEL_START;
 				NumbersMaze.post(e);
 				break;
-			case 3:
+			case 2:
 				// app.switchTo(ScreenList.OptionsScreen);
 				break;
-			case 4:
+			case 3:
 				// app.switchTo(ScreenList.AboutScreen);
 				break;
 			default:
@@ -218,27 +211,27 @@ public class MainMenu extends ScreenBase {
 
 		menuItems.clear();
 
-		final TextButton newGame = new TextButton("New Game (1 Player)", mainStyle);
-		newGame.addListener(new ClickListener() {
-			int item = menuItems.size();
+//		final TextButton newGame = new TextButton("New Game (1 Player)", mainStyle);
+//		newGame.addListener(new ClickListener() {
+//			int item = menuItems.size();
+//
+//			@Override
+//			public void clicked(final InputEvent event, final float x, final float y) {
+//				Gdx.app.log(this.getClass().getSimpleName(), "New Game!");
+//				menu_item = item;
+//				setButton.run();
+//				doButton.run();
+//			}
+//		});
+//		menuItems.add(newGame);
 
-			@Override
-			public void clicked(final InputEvent event, final float x, final float y) {
-				Gdx.app.log(this.getClass().getSimpleName(), "New Game!");
-				menu_item = item;
-				setButton.run();
-				doButton.run();
-			}
-		});
-		menuItems.add(newGame);
-
-		final TextButton loadGame = new TextButton("Load Game", mainStyle);
+		final TextButton loadGame = new TextButton("Play Game", mainStyle);
 		loadGame.addListener(new ClickListener() {
 			int item = menuItems.size();
 
 			@Override
 			public void clicked(final InputEvent event, final float x, final float y) {
-				Gdx.app.log(this.getClass().getSimpleName(), "Load Game!");
+				Gdx.app.log(this.getClass().getSimpleName(), "Play Game!");
 				menu_item = item;
 				setButton.run();
 				doButton.run();

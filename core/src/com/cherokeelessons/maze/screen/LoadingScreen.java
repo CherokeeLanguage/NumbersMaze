@@ -85,7 +85,7 @@ public class LoadingScreen extends ScreenBase {
 			public void clicked(final InputEvent event, final float x, final float y) {
 				super.clicked(event, x, y);
 				final ScreenChangeEvent e = new ScreenChangeEvent();
-				e.screen = ScreenList.MainMenu;
+				e.screen = ScreenList.MAIN_MENU;
 				NumbersMaze.post(e);
 			}
 		});
@@ -150,12 +150,12 @@ public class LoadingScreen extends ScreenBase {
 
 		if (logo.getActions().size == 0) {
 			final ScreenChangeEvent e = new ScreenChangeEvent();
-			e.screen = ScreenList.MainMenu;
+			e.screen = ScreenList.MAIN_MENU;
 			NumbersMaze.post(e);
 		}
 		if (System.currentTimeMillis() - start > 13000) {
 			final ScreenChangeEvent e = new ScreenChangeEvent();
-			e.screen = ScreenList.MainMenu;
+			e.screen = ScreenList.MAIN_MENU;
 			NumbersMaze.post(e);
 		}
 	}

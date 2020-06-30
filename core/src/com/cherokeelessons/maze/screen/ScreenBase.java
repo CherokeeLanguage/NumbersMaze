@@ -217,7 +217,7 @@ public class ScreenBase implements Screen {
 		}
 		Gdx.app.log(this.getClass().getSimpleName(), "Pause: " + getClass().getSimpleName());
 		final ScreenChangeEvent e = new ScreenChangeEvent();
-		e.screen = ScreenList.Paused;
+		e.screen = ScreenList.PAUSED;
 		NumbersMaze.post(e);
 	}
 

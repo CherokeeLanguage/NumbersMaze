@@ -27,7 +27,7 @@ public class BoomGenerate implements Runnable {
 		final int startingAngle = MathUtils.random(360);
 		for (float angle = startingAngle; angle < startingAngle + 360f; angle += i) {
 			final Boom b = new Boom(owner);
-			final Vector2 force = new Vector2(16f + count, 0);
+			final Vector2 force = new Vector2(count, 0);
 			final Vector2 pos = new Vector2(worldPosition);
 			force.setAngle(angle);
 			b.setWorldScale(worldScale);
@@ -45,6 +45,7 @@ public class BoomGenerate implements Runnable {
 						b.body.applyLinearImpulse(force, pos, true);
 						b.getColor().a = 1f;
 					} catch (final Exception e) {
+						//ignore
 					}
 				}
 			}));

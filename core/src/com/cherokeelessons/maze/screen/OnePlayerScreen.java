@@ -173,17 +173,17 @@ public class OnePlayerScreen extends ScreenBase {
 			// these numbers must match the arraylist indexes the items sit under!
 			switch (menu_item) {
 			case 0:
-				e.screen = ScreenList.SinglePlayerMazeScreen;
+				e.screen = ScreenList.RESUME_GAME;
 				e.data.put(data);
 				NumbersMaze.post(e);
 				break;
 			case 1:
-				e.screen = ScreenList.SaveGame;
+				e.screen = ScreenList.SAVE_GAME;
 				e.data.put(data);
 				NumbersMaze.post(e);
 				break;
 			case 2:
-				e.screen = ScreenList.MainMenu;
+				e.screen = ScreenList.MAIN_MENU;
 				NumbersMaze.post(e);
 				break;
 			default:
@@ -252,7 +252,7 @@ public class OnePlayerScreen extends ScreenBase {
 			public void clicked(final InputEvent event, final float x, final float y) {
 				final ScreenChangeEvent e = new ScreenChangeEvent();
 				e.data.put(data);
-				e.screen = ScreenList.SinglePlayerMazeScreen;
+				e.screen = ScreenList.RESUME_GAME;
 				NumbersMaze.post(e);
 			}
 		});

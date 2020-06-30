@@ -1,5 +1,7 @@
 package com.cherokeelessons.maze.game;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -197,7 +199,7 @@ public class TheWorld {
 		orphan_tracker.add(orphan);
 	}
 
-	public int badValue_getNext(final int maxFaceValue) {
+	public int badValue_getNext(final int minFaceValue, final int maxFaceValue) {
 		int gbv = 0;
 		if (badAccumulator < 1) {
 			return 0;
@@ -208,17 +210,35 @@ public class TheWorld {
 		}
 		do {
 			if (dieDeck.size == 0) {
-				int sides = 6;
-				if (badAccumulator > 30 && maxFaceValue > 30) {
-					sides = 7;
+				int sides = 8;
+				for (int i = 1; i <= sides; i++) {
+					if (i==7 && 20 > badAccumulator) {
+						continue;
+					}
+					if (i==8 && 80 > badAccumulator) {
+						continue;
+					}
+					if (i > badAccumulator) {
+						continue;
+					}
+					if (i > maxFaceValue) {
+						continue;
+					}
+					dieDeck.add(i);
 				}
-				if (badAccumulator > 100 && maxFaceValue > 100) {
-					sides = 8;
+				dieDeck.sort();
+				dieDeck.reverse();
+				
+				if (new Random().nextInt(100) > 10 && dieDeck.size>3 && minFaceValue>6) {
+					dieDeck.removeRange(3, dieDeck.size-1);
 				}
-				for (int i = 0; i < sides; i++) {
-					dieDeck.add(i + 1);
-				}
+				
+				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
+				
 				dieDeck.shuffle();
+			}
+			if (dieDeck.isEmpty()) {
+				return 0;
 			}
 			gbv = dieDeck.removeIndex(0);
 			// convert die face into VALUE

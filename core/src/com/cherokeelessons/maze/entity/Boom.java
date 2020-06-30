@@ -93,7 +93,7 @@ public class Boom extends Entity {
 				final BoomGenerate bg = new BoomGenerate();
 				bg.setWorld(world);
 				bg.setWorldScale(worldScale);
-				bg.setCount(entity.value);
+				bg.setCount(entity.value+2);
 				bg.setWorldPosition(pos);
 				bg.setLinearVelocity(body.getLinearVelocity());
 				bg.setOwner(getOwner());

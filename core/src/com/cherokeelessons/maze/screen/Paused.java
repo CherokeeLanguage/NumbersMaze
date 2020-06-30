@@ -30,7 +30,7 @@ public class Paused extends ScreenBase {
 //			super.clicked(event, x, y);
 			Gdx.app.log(this.getClass().getSimpleName(), "EVENT: " + event.getType().name());
 			final ScreenChangeEvent e = new ScreenChangeEvent();
-			e.screen = ScreenList.Previous;
+			e.screen = ScreenList.PREVIOUS_SCREEN;
 			NumbersMaze.post(e);
 		}
 	}
