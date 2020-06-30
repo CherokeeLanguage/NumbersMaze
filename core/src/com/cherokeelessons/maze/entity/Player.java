@@ -348,16 +348,16 @@ public class Player extends Entity {
 			if (dieDeck.size == 0) {
 				int sides = 8;
 				for (int i = 1; i <= sides; i++) {
-					if (i==7 && 20 > badAccumulator) {
+					if (i==7 && (20 > badAccumulator || 20 > maxFaceValue)) {
 						continue;
 					}
-					if (i==8 && 80 > badAccumulator) {
-						continue;
-					}
-					if (i > badAccumulator) {
+					if (i==8 && (80 > badAccumulator|| 80 > maxFaceValue)) {
 						continue;
 					}
 					if (i > maxFaceValue) {
+						continue;
+					}
+					if (i > badAccumulator) {
 						continue;
 					}
 					dieDeck.add(i);
