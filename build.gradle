@@ -1,6 +1,4 @@
 buildscript {
-    
-
     repositories {
         mavenLocal()
         mavenCentral()
@@ -12,14 +10,12 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.1'
         classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.3.9'
-        
-
+        classpath "gradle.plugin.com.greensopinion.gradle-android-eclipse:android-eclipse:1.0"
     }
 }
 
 allprojects {
-
-	apply plugin: "eclipse-wtp"
+	apply plugin: "eclipse"
 
     version = '1.05'
     
@@ -44,7 +40,7 @@ allprojects {
 
 project(":desktop") {
     apply plugin: "java-library"
-    //apply plugin: "eclipse"
+    apply plugin: "eclipse"
 
     dependencies {
         implementation project(":core")
@@ -66,27 +62,28 @@ project(":desktop") {
 
 project(":android") {
     apply plugin: "android"
+    apply plugin: 'com.greensopinion.gradle-android-eclipse'
 
     configurations { natives }
 
     dependencies {
-        implementation project(":core")
-        api "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+        compile project(":core")
+        compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
-        api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-arm64-v8a"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
-        api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
-        api "com.badlogicgames.gdx:gdx-controllers:$gdxVersion"
-        api "com.badlogicgames.gdx:gdx-controllers-android:$gdxVersion"
-        api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
+        compile "com.badlogicgames.gdx:gdx-controllers:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-controllers-android:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
@@ -94,17 +91,43 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     }
     
-     eclipse {
-    	project {
-        	name = appName+"-android"
-    	}
-	}
+    // sets up the Android Eclipse project, using the old Ant based build.
+eclipse {
+    // need to specify Java source sets explicitly, SpringSource Gradle Eclipse plugin
+    // ignores any nodes added in classpath.file.withXml
+    sourceSets {
+        main {
+            java.srcDirs "src", 'gen'
+        }
+    }
+
+    jdt {
+        sourceCompatibility = 1.7
+        targetCompatibility = 1.7
+    }
+
+    classpath {
+        plusConfigurations += [ project.configurations.compile ]        
+        //containers 'com.android.ide.eclipse.adt.ANDROID_FRAMEWORK', 'com.android.ide.eclipse.adt.LIBRARIES'       
+    }
+
+    project {
+        name = appName + "-android"
+        //natures 'com.android.ide.eclipse.adt.AndroidNature'
+        //buildCommands.clear();
+        //buildCommand "com.android.ide.eclipse.adt.ResourceManagerBuilder"
+        //buildCommand "com.android.ide.eclipse.adt.PreCompilerBuilder"
+        //buildCommand "org.eclipse.jdt.core.javabuilder"
+        //buildCommand "com.android.ide.eclipse.adt.ApkBuilder"
+    }
+}
+
 }
 
 project(":ios") {
     apply plugin: "java-library"
     apply plugin: "robovm"
-	//apply plugin: "eclipse"
+	apply plugin: "eclipse"
 
     dependencies {
         implementation project(":core")
@@ -125,7 +148,7 @@ project(":ios") {
 
 project(":core") {
     apply plugin: "java-library"
-	//apply plugin: "eclipse"
+	apply plugin: "eclipse"
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
