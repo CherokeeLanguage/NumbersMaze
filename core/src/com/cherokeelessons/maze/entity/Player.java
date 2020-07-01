@@ -372,12 +372,11 @@ public class Player extends Entity {
 				}
 				
 				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
-				
-				dieDeck.shuffle();
 			}
 			if (dieDeck.isEmpty()) {
 				return 0;
 			}
+			dieDeck.shuffle();
 			gbv = dieDeck.removeIndex(0);
 			// convert die face into VALUE
 			if (gbv == 7) {
