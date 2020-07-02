@@ -1065,7 +1065,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	private int getMaxChallenge() {
-		int max = 0;
+		if (challengeList.isEmpty()) {
+			return theChallenge;
+		}
+		int max = 1;
 		for (final Integer i : challengeList) {
 			if (i > max) {
 				max = i;
@@ -1079,10 +1082,13 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		for (final Integer i : challengeList) {
 			sum += i;
 		}
-		return sum;
+		return sum + theChallenge;
 	}
 
 	private int getMinChallenge() {
+		if (challengeList.isEmpty()) {
+			return theChallenge;
+		}
 		int min = Integer.MAX_VALUE;
 		for (final Integer i : challengeList) {
 			if (i < min) {
@@ -1232,7 +1238,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			}
 		}
 
-		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 750) {
+		if (blockListValue + inLimbo < maxInPlay && System.currentTimeMillis() - restoreBlockTick > 500) {
 			final Vector2 new_block_pos = numberPortal.get(MathUtils.random(numberPortal.size - 1));
 			if (centerSpotIsEmpty(new_block_pos)) {
 				final int maxFaceValue = getMaxChallenge();
@@ -1265,7 +1271,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					sinceLastNotice = System.currentTimeMillis() + 30000;
 				}
 			}
-			Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
+			//Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
 			restoreBlockTick = System.currentTimeMillis();
 		}
 		// should portal be available check

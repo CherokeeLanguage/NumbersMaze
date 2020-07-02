@@ -338,7 +338,7 @@ public class Player extends Entity {
 	public int badValue_getNext(final int minFaceValue, final int maxFaceValue) {
 		int gbv = 0;
 		if (badAccumulator < 1) {
-			return 0;
+			return 1;
 		}
 		if (badAccumulator == 1) {
 			badAccumulator = 0;
@@ -355,13 +355,17 @@ public class Player extends Entity {
 						continue;
 					}
 					if (i > maxFaceValue) {
+						Gdx.app.log(this.getClass().getSimpleName(), "i > maxFaceValue: "+i+">"+maxFaceValue);
 						continue;
 					}
 					if (i > badAccumulator) {
+						Gdx.app.log(this.getClass().getSimpleName(), "i > badAccumulator: "+i+">"+badAccumulator);
 						continue;
 					}
 					dieDeck.add(i);
+					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: "+dieDeck.toString());
 				}
+				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: "+dieDeck.toString());
 				dieDeck.sort();
 				dieDeck.reverse();
 				
@@ -387,7 +391,10 @@ public class Player extends Entity {
 			}
 		} while (gbv > badAccumulator);
 		badAccumulator -= gbv;
-		return gbv;
+		if (badAccumulator<0) {
+			badAccumulator=0;
+		}
+		return gbv > 0 ? gbv : 0;
 	}
 
 	public int badValue_getPending() {
