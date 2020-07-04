@@ -25,7 +25,7 @@ public class Arrow extends Entity {
 
 	int maxBounces = 0;
 
-	private ArrowGroup owner = null;
+	private ChainedExplosions owner = null;
 
 	public Arrow() {
 		super(r);
@@ -92,7 +92,7 @@ public class Arrow extends Entity {
 
 //	ArrayList<Entity> toRemove = new ArrayList<Entity>();
 
-	public void addToWorld(final World world, final Vector2 pos, final ArrowGroup newOwner) {
+	public void addToWorld(final World world, final Vector2 pos, final ChainedExplosions newOwner) {
 		this.setOwner(newOwner);
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.DynamicBody;
@@ -144,11 +144,11 @@ public class Arrow extends Entity {
 		body.applyLinearImpulse(impulse, body.getWorldCenter(), true);
 	}
 
-	public ArrowGroup getOwner() {
+	public ChainedExplosions getOwner() {
 		return owner;
 	}
 
-	public void setOwner(final ArrowGroup owner) {
+	public void setOwner(final ChainedExplosions owner) {
 		this.owner = owner;
 	}
 }

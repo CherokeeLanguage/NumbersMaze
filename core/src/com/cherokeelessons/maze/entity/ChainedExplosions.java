@@ -3,15 +3,15 @@ package com.cherokeelessons.maze.entity;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Group;
 
-public class ArrowGroup {
+public class ChainedExplosions {
 	public int boxCount = 0;
 	public final Group group = new Group();
 	public int accumulator = 0;
 	private final Vector2 pos = new Vector2();
 	private final Vector2 wpos = new Vector2();
 
-	public ArrowGroup() {
-		group.setName("ArrowGroup");
+	public ChainedExplosions() {
+		group.setName("ChainedExplosions");
 	}
 
 	public Vector2 getPos() {

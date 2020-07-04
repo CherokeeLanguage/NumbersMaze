@@ -386,7 +386,7 @@ public class DeathOrb extends Entity {
 					@Override
 					public void run() {
 						final AddOrphan orphan = new AddOrphan();
-						final ArrowGroup arrowGroup = orphan.arrowGroup;
+						final ChainedExplosions arrowGroup = orphan.arrowGroup;
 						final BoomGenerate bg = new BoomGenerate();
 						bg.setWorld(world);
 						bg.setWorldScale(scale);

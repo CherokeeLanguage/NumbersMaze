@@ -16,7 +16,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.cherokeelessons.maze.Effect;
 import com.cherokeelessons.maze.entity.Arrow;
-import com.cherokeelessons.maze.entity.ArrowGroup;
+import com.cherokeelessons.maze.entity.ChainedExplosions;
 import com.cherokeelessons.maze.entity.Entity;
 import com.cherokeelessons.maze.stage.StageBase;
 import com.google.common.eventbus.EventBus;
@@ -25,7 +25,7 @@ import com.google.common.eventbus.Subscribe;
 public class TheWorld {
 
 	public static class AddOrphan {
-		public final ArrowGroup arrowGroup = new ArrowGroup();
+		public final ChainedExplosions arrowGroup = new ChainedExplosions();
 	}
 
 	public static final short TYPE_UNDEFINED = 0;
@@ -48,7 +48,7 @@ public class TheWorld {
 		bus.post(o);
 	}
 
-	private final Array<ArrowGroup> orphan_tracker = new Array<>();
+	private final Array<ChainedExplosions> orphan_tracker = new Array<>();
 
 	private int badAccumulator = 0;
 
@@ -156,7 +156,7 @@ public class TheWorld {
 
 						@Override
 						public void run() {
-							final ArrowGroup arrowGroup = new ArrowGroup();
+							final ChainedExplosions arrowGroup = new ChainedExplosions();
 							Arrow a;
 							a = new Arrow();
 							a.getColor().a = 0f;// make invisible
@@ -195,7 +195,7 @@ public class TheWorld {
 		addToOrphan_tracker(event.arrowGroup);
 	}
 
-	public void addToOrphan_tracker(final ArrowGroup orphan) {
+	public void addToOrphan_tracker(final ChainedExplosions orphan) {
 		orphan_tracker.add(orphan);
 	}
 
@@ -276,7 +276,7 @@ public class TheWorld {
 		return prevCollides.size;
 	}
 
-	public Array<ArrowGroup> getOrphan_tracker() {
+	public Array<ChainedExplosions> getOrphan_tracker() {
 		return orphan_tracker;
 	}
 
@@ -294,7 +294,7 @@ public class TheWorld {
 
 	public void processOrphans(final StageBase stage) {
 		for (int ix = orphan_tracker.size - 1; ix >= 0; ix--) {
-			final ArrowGroup arrowGroup = orphan_tracker.get(ix);
+			final ChainedExplosions arrowGroup = orphan_tracker.get(ix);
 			if (arrowGroup.group.getStage() == null) {
 				stage.addActor(arrowGroup.group);
 			}

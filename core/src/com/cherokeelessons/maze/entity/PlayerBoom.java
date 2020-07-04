@@ -5,7 +5,7 @@ import com.cherokeelessons.maze.game.TheWorld;
 
 public class PlayerBoom extends Boom {
 
-	public PlayerBoom(ArrowGroup owner) {
+	public PlayerBoom(ChainedExplosions owner) {
 		super(owner);
 		maxBounces=DEFAULT_MAX_BOUNCES*2;
 		identity = Entity.ARROW;

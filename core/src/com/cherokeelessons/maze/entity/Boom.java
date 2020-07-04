@@ -32,9 +32,9 @@ public class Boom extends Entity {
 
 	protected int maxBounces;
 
-	private ArrowGroup owner;
+	private ChainedExplosions owner;
 
-	public Boom(final ArrowGroup owner) {
+	public Boom(final ChainedExplosions owner) {
 		super(r);
 		maxBounces = DEFAULT_MAX_BOUNCES;
 		identity = Entity.EXPLOSION;
@@ -164,11 +164,11 @@ public class Boom extends Entity {
 		toFront();
 	}
 
-	public ArrowGroup getOwner() {
+	public ChainedExplosions getOwner() {
 		return owner;
 	}
 
-	public void setOwner(final ArrowGroup owner) {
+	public void setOwner(final ChainedExplosions owner) {
 		this.owner = owner;
 	}
 

@@ -13,7 +13,7 @@ public class BoomGenerate implements Runnable {
 	private float count = 9;
 	private final Vector2 worldPosition = new Vector2();
 	private final Vector2 linearVelocity = new Vector2();
-	ArrowGroup owner = new ArrowGroup();
+	ChainedExplosions owner = new ChainedExplosions();
 
 	@Override
 	public void run() {
@@ -61,7 +61,7 @@ public class BoomGenerate implements Runnable {
 		this.linearVelocity.set(linearVelocity);
 	}
 
-	public void setOwner(final ArrowGroup group) {
+	public void setOwner(final ChainedExplosions group) {
 		owner = group;
 	}
 

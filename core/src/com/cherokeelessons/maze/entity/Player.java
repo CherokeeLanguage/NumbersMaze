@@ -65,7 +65,7 @@ public class Player extends Entity {
 
 	private AtlasRegion[][] ar;
 
-	private final ArrayList<ArrowGroup> arrowGroupTracker = new ArrayList<>();
+	private final ArrayList<ChainedExplosions> chainedExplosionsTracker = new ArrayList<>();
 	private int lastDir = -1;
 
 	private final int lastX = -1;
@@ -101,8 +101,8 @@ public class Player extends Entity {
 			return;
 		}
 
-		for (int ix = arrowGroupTracker.size() - 1; ix >= 0; ix--) {
-			final ArrowGroup arrowGroup = arrowGroupTracker.get(ix);
+		for (int ix = chainedExplosionsTracker.size() - 1; ix >= 0; ix--) {
+			final ChainedExplosions arrowGroup = chainedExplosionsTracker.get(ix);
 			if (arrowGroup.group.getChildren().size < 1) {
 				if (arrowGroup.boxCount > 0) {
 					if (arrowGroup.accumulator == theChallenge) {
@@ -122,7 +122,7 @@ public class Player extends Entity {
 					}
 				}
 				arrowGroup.group.remove();
-				arrowGroupTracker.remove(ix);
+				chainedExplosionsTracker.remove(ix);
 			}
 		}
 
@@ -138,6 +138,7 @@ public class Player extends Entity {
 				addAudio(Effect.PLINK);
 			}
 		}
+		
 		// if button X just now pressed down try to grab a box!
 		if (gamepad.btn_x) {
 			gamepad.btn_x = false; // mark as handled
@@ -290,10 +291,10 @@ public class Player extends Entity {
 				fireImpulse = new Vector2(1f, 0f);
 				break;
 			}
-			final ArrowGroup arrowGroup = new ArrowGroup();
-			arrowGroupTracker.add(arrowGroup);
+			final ChainedExplosions group = new ChainedExplosions();
+			chainedExplosionsTracker.add(group);
 
-			addBoom(arrowGroup, fireImpulse);
+			addBoom(group, fireImpulse);
 		}
 
 	}
@@ -324,7 +325,7 @@ public class Player extends Entity {
 		}
 	}
 
-	private void addBoom(final ArrowGroup arrowGroup, final Vector2 boomImpulse) {
+	private void addBoom(final ChainedExplosions arrowGroup, final Vector2 boomImpulse) {
 		final PlayerBoom a = new PlayerBoom(arrowGroup);
 		a.setWorldScale(worldScale);
 		arrowGroup.group.addActor(a);
@@ -456,8 +457,8 @@ public class Player extends Entity {
 
 	public int pointsInLimbo() {
 		int total = 0;
-		for (int ix = arrowGroupTracker.size() - 1; ix >= 0; ix--) {
-			total += arrowGroupTracker.get(ix).accumulator;
+		for (int ix = chainedExplosionsTracker.size() - 1; ix >= 0; ix--) {
+			total += chainedExplosionsTracker.get(ix).accumulator;
 		}
 		return total;
 	}
