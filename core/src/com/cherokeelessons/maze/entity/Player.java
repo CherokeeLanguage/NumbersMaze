@@ -1,6 +1,8 @@
 package com.cherokeelessons.maze.entity;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
@@ -37,13 +39,19 @@ public class Player extends Entity {
 	public int theChallenge = 1;
 	public int myScore = 0;
 	private int badAccumulator = 0;
-	Array<Integer> dieDeck = new Array<>();
-	private Entity holding = null;
+	private Array<Integer> dieDeck = new Array<>();
 
-	private Joint joint = null;
-	private boolean prev_btn_x = false;
-	private boolean prev_btn_a = false;
-	private boolean toggledOn = false;
+	private static class HeldBlock {
+		public HeldBlock(Entity box, Joint joint) {
+			this.box = box;
+			this.joint = joint;
+		}
+
+		private Entity box;
+		private Joint joint;
+	}
+
+	private final List<HeldBlock> holding;
 
 	final private Vector2 aabb_size = new Vector2();
 
@@ -65,6 +73,7 @@ public class Player extends Entity {
 
 	public Player() {
 		super();
+		holding = new ArrayList<>();
 		r.setSeed(0);
 		final TextureAtlas atlas = S.getPar().playerAtlas;
 		ar = new AtlasRegion[4][4];
@@ -81,6 +90,7 @@ public class Player extends Entity {
 
 	public Player(final AtlasRegion ar) {
 		super(ar);
+		holding = new ArrayList<>();
 		r.setSeed(0);
 	}
 
@@ -116,23 +126,24 @@ public class Player extends Entity {
 			}
 		}
 
-		toggledOn = false;
-//		toggledOff = false;
-		if (!prev_btn_x && gamepad.btn_x) {
-			toggledOn = true;
-		}
-		if (prev_btn_x && !gamepad.btn_x) {
-//			toggledOff = true;
-		}
-
 		aabb_lower.x = worldCenter.x - aabb_size.x / 2;
 		aabb_lower.y = worldCenter.y - aabb_size.y / 2;
 		aabb_upper.x = worldCenter.x + aabb_size.x / 2;
 		aabb_upper.y = worldCenter.y + aabb_size.y / 2;
 
-		// if (not carrying) && (button X just now pressed down) try to grab a
-		// box!
-		if (joint == null && toggledOn) {
+		if (gamepad.btn_x && holding.size()>3) {
+			cleanHeldList();
+			if (holding.size()>2) {
+				gamepad.btn_x=false; //mark as handled
+				addAudio(Effect.PLINK);
+			}
+		}
+		// if button X just now pressed down try to grab a box!
+		if (gamepad.btn_x) {
+			gamepad.btn_x = false; // mark as handled
+			
+			cleanHeldList();
+			
 			// grab the box (if any)
 			Entity box = null;
 			// AABB search to ensure we have any boxes in our sights!
@@ -151,9 +162,14 @@ public class Player extends Entity {
 					return true;
 				}
 			}, aabb_lower.x, aabb_lower.y, aabb_upper.x, aabb_upper.y);
-			// find first collides with
+			// find nearest collides with
 			float d = 0;
-			for (final Entity item : getCollidesWith()) {
+			scan: for (final Entity item : getCollidesWith()) {
+				for (HeldBlock held: holding) {
+					if (held.box == item) {
+						continue scan;
+					}
+				}
 				if (item.identity == Entity.BLOCK) {
 					final float d2 = worldCenter.dst(item.getBody().getWorldCenter());
 					if (d2 < d || box == null) {
@@ -165,57 +181,62 @@ public class Player extends Entity {
 
 			if (box != null) {
 				addAudio(Effect.PICK_UP);
-				holding = box;
-//				holding.setColor(Color.RED);
-				holding.getColor().a = .4f;
-//				holding.body.setTransform(holding.body.getWorldCenter(), 0f);
+				box.getColor().a = .4f;
 				final RopeJointDef jdef = new RopeJointDef();
-				jdef.bodyA = body;
-				jdef.bodyB = holding.body;
+				if (holding.isEmpty()) {
+					jdef.bodyA = body;
+					jdef.maxLength = 2f;
+				} else {
+					jdef.bodyA = body;
+					jdef.maxLength = 2f + holding.size()/3f;
+				}
+				jdef.bodyB = box.body;
 				jdef.collideConnected = false;
-				jdef.maxLength = 2f;
 				jdef.localAnchorA.x = body.getLocalCenter().x;
 				jdef.localAnchorA.y = body.getLocalCenter().y;
-				jdef.localAnchorB.x = holding.body.getLocalCenter().x;
-				jdef.localAnchorB.y = holding.body.getLocalCenter().y;
-				joint = body.getWorld().createJoint(jdef);
-//				holding.body.setTransform(worldCenter, 0f);
-				final Array<Fixture> f = holding.body.getFixtureList();
+				jdef.localAnchorB.x = box.body.getLocalCenter().x;
+				jdef.localAnchorB.y = box.body.getLocalCenter().y;
+				Joint createdJoint = body.getWorld().createJoint(jdef);
+				final Array<Fixture> f = box.body.getFixtureList();
 				for (final Fixture af : f) {
 					af.setSensor(false);
 				}
-				holding.toFront();
+				holding.add(0, new HeldBlock(box, createdJoint));
+				box.toFront();
 				toFront();
 			}
-		} else if (joint != null && toggledOn) {
-			final Array<Joint> joints = new Array<>();
-			body.getWorld().getJoints(joints);
-			for (final Joint j : joints) {
-				if (j.equals(joint)) {
+		}
+
+		/*
+		 * Drop all held items.
+		 */
+		if (gamepad.btn_y) {
+			gamepad.btn_y = false; // mark as handled
+			cleanHeldList();
+			Array<Joint> worldJoints = new Array<>();
+			body.getWorld().getJoints(worldJoints);
+			Iterator<HeldBlock> iterator = holding.iterator();
+			while (iterator.hasNext()) {
+				HeldBlock held = iterator.next();
+				if (worldJoints.contains(held.joint, true)) {
 					addAudio(Effect.DROP_IT);
-					body.getWorld().destroyJoint(joint);
-					holding.body.setGravityScale(1f);
-					final Array<Fixture> f = holding.body.getFixtureList();
+					body.getWorld().destroyJoint(held.joint);
+				}
+				if (held.box.body != null) {
+					held.box.body.setGravityScale(1f);
+					final Array<Fixture> f = held.box.body.getFixtureList();
 					for (final Fixture af : f) {
 						af.setSensor(false);
 					}
-					holding.body.setFixedRotation(false);
-//					holding.setColor(Color.WHITE);
-					holding.getColor().a = 1f;
+					held.box.body.setFixedRotation(false);
 				}
+				held.box.getColor().a = 1f;
+				iterator.remove();
 			}
-			holding = null;
-			joint = null;
 		}
 
-//		impulse.x = 0.75f * gamepad.deltaX;
-//		impulse.y = 0.75f * gamepad.deltaY;
-		
 		impulse.x = 0.7f * gamepad.deltaX;
 		impulse.y = 0.7f * gamepad.deltaY;
-		
-//		impulse.x = 1f * gamepad.deltaX;
-//		impulse.y = 1f * gamepad.deltaY;
 
 		// change graphic and such to match new movement impulse
 		// determine direction based on magnitude and update texture being
@@ -245,11 +266,13 @@ public class Player extends Entity {
 
 		body.applyLinearImpulse(impulse, worldCenter, true);
 
-		if (gamepad.btn_a && !prev_btn_a) {
+		if (gamepad.btn_a) {
+			gamepad.btn_a = false; // mark as handled
+			cleanHeldList();
 			final Vector2 fireImpulse;
 			switch (lastDir) {
 			case EAST:
-				 fireImpulse = new Vector2(4f, 0f);
+				fireImpulse = new Vector2(4f, 0f);
 				break;
 			case WEST:
 				fireImpulse = new Vector2(4f, 0f);
@@ -267,29 +290,40 @@ public class Player extends Entity {
 				fireImpulse = new Vector2(1f, 0f);
 				break;
 			}
-			// ff.add();
 			final ArrowGroup arrowGroup = new ArrowGroup();
 			arrowGroupTracker.add(arrowGroup);
-			
-//			addArrow(arrowGroup, ff);
+
 			addBoom(arrowGroup, fireImpulse);
 		}
 
-		prev_btn_x = gamepad.btn_x;
-		prev_btn_a = gamepad.btn_a;
 	}
 
-	private void addArrow(final ArrowGroup arrowGroup, final Vector2 arrowImpulse) {
-		final Arrow a = new Arrow();
-		a.setWorldScale(worldScale);
-		arrowGroup.group.addActor(a);
-		getStage().addActor(arrowGroup.group);
-		a.addToWorld(body.getWorld(), body.getWorldCenter(), arrowGroup);
-		a.body.setLinearVelocity(body.getLinearVelocity());
-		a.fire(arrowImpulse);
-		a.toFront();
+	private void cleanHeldList() {
+		Array<Joint> worldJoints = new Array<>();
+		body.getWorld().getJoints(worldJoints);
+		Iterator<HeldBlock> iterator = holding.iterator();
+		while (iterator.hasNext()) {
+			HeldBlock held = iterator.next();
+			if (!worldJoints.contains(held.joint, true)) {
+				if (held.box.body!=null) {
+					held.box.body.setGravityScale(1f);
+					final Array<Fixture> f = held.box.body.getFixtureList();
+					for (final Fixture af : f) {
+						af.setSensor(false);
+					}
+					held.box.body.setFixedRotation(false);
+				}
+				held.box.getColor().a = 1f;
+				iterator.remove();
+				continue;
+			}
+			if (held.box.body == null) {
+				iterator.remove();
+				continue;
+			}
+		}
 	}
-	
+
 	private void addBoom(final ArrowGroup arrowGroup, final Vector2 boomImpulse) {
 		final PlayerBoom a = new PlayerBoom(arrowGroup);
 		a.setWorldScale(worldScale);
@@ -298,7 +332,7 @@ public class Player extends Entity {
 		a.addToWorld(body.getWorld(), body.getWorldCenter(), boomImpulse);
 		a.setOwner(arrowGroup);
 		a.body.setLinearVelocity(body.getLinearVelocity().cpy().scl(4f));
-		a.fire(boomImpulse);		
+		a.fire(boomImpulse);
 		a.toFront();
 	}
 
@@ -323,8 +357,6 @@ public class Player extends Entity {
 		body.setLinearDamping(4.5f);
 		body.setAngularDamping(4.5f);
 		showAvatar(lastDir);
-		holding = null;
-		joint = null;
 	}
 
 	public void badValue_add(final int addValue) {
@@ -348,34 +380,34 @@ public class Player extends Entity {
 			if (dieDeck.size == 0) {
 				int sides = 8;
 				for (int i = 1; i <= sides; i++) {
-					if (i==7 && (20 > badAccumulator || 20 > maxFaceValue)) {
+					if (i == 7 && (20 > badAccumulator || 20 > maxFaceValue)) {
 						continue;
 					}
-					if (i==8 && (80 > badAccumulator|| 80 > maxFaceValue)) {
+					if (i == 8 && (80 > badAccumulator || 80 > maxFaceValue)) {
 						continue;
 					}
 					if (i > maxFaceValue) {
-						Gdx.app.log(this.getClass().getSimpleName(), "i > maxFaceValue: "+i+">"+maxFaceValue);
+						Gdx.app.log(this.getClass().getSimpleName(), "i > maxFaceValue: " + i + ">" + maxFaceValue);
 						continue;
 					}
 					if (i > badAccumulator) {
-						Gdx.app.log(this.getClass().getSimpleName(), "i > badAccumulator: "+i+">"+badAccumulator);
+						Gdx.app.log(this.getClass().getSimpleName(), "i > badAccumulator: " + i + ">" + badAccumulator);
 						continue;
 					}
 					dieDeck.add(i);
-					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: "+dieDeck.toString());
+					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: " + dieDeck.toString());
 				}
-				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: "+dieDeck.toString());
+				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: " + dieDeck.toString());
 				dieDeck.sort();
 				dieDeck.reverse();
-				
-				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 10) {
+
+				if (minFaceValue > 6 && dieDeck.size > 3 && new Random().nextInt(100) > 10) {
 					dieDeck.sort();
 					dieDeck.reverse();
-					dieDeck.removeRange(3, dieDeck.size-1);
+					dieDeck.removeRange(3, dieDeck.size - 1);
 				}
-				
-				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
+
+				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: " + dieDeck.toString());
 			}
 			if (dieDeck.isEmpty()) {
 				return 0;
@@ -391,8 +423,8 @@ public class Player extends Entity {
 			}
 		} while (gbv > badAccumulator);
 		badAccumulator -= gbv;
-		if (badAccumulator<0) {
-			badAccumulator=0;
+		if (badAccumulator < 0) {
+			badAccumulator = 0;
 		}
 		return gbv > 0 ? gbv : 0;
 	}
@@ -587,7 +619,7 @@ public class Player extends Entity {
 			setOrigin(regionWidth / 2, regionHeight / 2);
 			setOffsetX(-regionWidth / 2);
 			setOffsetY(-regionHeight / 2);
-			resetFixtures(regionWidth , regionHeight);
+			resetFixtures(regionWidth, regionHeight);
 		} else {
 			Gdx.app.log(this.getClass().getSimpleName(), "DIR IS NULL: " + dir + ", i: " + i);
 		}

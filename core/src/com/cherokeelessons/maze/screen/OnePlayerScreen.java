@@ -46,8 +46,9 @@ public class OnePlayerScreen extends ScreenBase {
 			+ "   appear to go to the next level.\n" //
 			+ "\n" //
 			+ " Use left joystick or dpad to move around.\n" //
-			+ " Use [X] to pick up and drop boxes.\n" //
-			+ " Use [A] to fire a bolt to trigger an explosion.\n" //
+			+ " Use [X] to pick up boxes - you can carry multiple boxes.\n" //
+			+ " Use [Y] to drop boxes - you will drop all boxes.\n" //
+			+ " Use [A] to fire out a fireball to trigger an explosion.\n" //
 			+ "\n" //
 			+ " Press [A] when ready.";
 	private Label msgBox = null;
