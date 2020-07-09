@@ -56,13 +56,11 @@ public class SaveLoadScreen extends ScreenBase {
 					e.data.putInteger("slot", menu_item);
 					e.data.putInteger("level", 1);
 					e.data.putInteger("score", 0);
-					e.data.putBoolean("ultimate", false);
 					e.screen = ScreenList.LEVEL_START;
 				} else {
 					e.data.putInteger("slot", menu_item);
 					e.data.putInteger("level", gs.getLevel());
 					e.data.putInteger("score", gs.getScore());
-					e.data.putBoolean("ultimate", gs.isUltimate());
 					e.screen = ScreenList.RESUME_GAME;
 				}
 				NumbersMaze.post(e);
@@ -71,12 +69,10 @@ public class SaveLoadScreen extends ScreenBase {
 				gs.setSlot(menu_item);
 				gs.setLevel(data.getInteger("level"));
 				gs.setScore(data.getInteger("score"));
-				gs.setUltimate(data.getBoolean("ultimate"));
 				NumbersMaze.saveSlot(gs);
 				e.data.putInteger("slot", menu_item);
 				e.data.putInteger("level", gs.getLevel());
 				e.data.putInteger("score", gs.getScore());
-				e.data.putBoolean("ultimate", gs.isUltimate());
 				e.screen = ScreenList.RESUME_GAME;
 				NumbersMaze.post(e);
 				break;

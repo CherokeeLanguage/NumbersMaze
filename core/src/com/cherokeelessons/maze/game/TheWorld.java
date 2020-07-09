@@ -230,7 +230,7 @@ public class TheWorld {
 					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: "+dieDeck.toString());
 				}
 				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: "+dieDeck.toString());
-				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 30) {
+				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 74) {
 					dieDeck.sort();
 					dieDeck.reverse();
 					dieDeck.removeRange(3, dieDeck.size-1);

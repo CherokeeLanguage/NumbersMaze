@@ -189,7 +189,7 @@ public class Player extends Entity {
 					jdef.maxLength = 2f;
 				} else {
 					jdef.bodyA = body;
-					jdef.maxLength = 2f + holding.size()/3f;
+					jdef.maxLength = 2f + holding.size()/2f;
 				}
 				jdef.bodyB = box.body;
 				jdef.collideConnected = false;
@@ -236,8 +236,8 @@ public class Player extends Entity {
 			}
 		}
 
-		impulse.x = 0.7f * gamepad.deltaX;
-		impulse.y = 0.7f * gamepad.deltaY;
+		impulse.x = gamepad.deltaX;
+		impulse.y = gamepad.deltaY;
 
 		// change graphic and such to match new movement impulse
 		// determine direction based on magnitude and update texture being
@@ -355,7 +355,7 @@ public class Player extends Entity {
 		body.setUserData(this);
 		body.setFixedRotation(true);
 		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(4.5f);
+		body.setLinearDamping(4.0f);
 		body.setAngularDamping(4.5f);
 		showAvatar(lastDir);
 	}
@@ -402,7 +402,7 @@ public class Player extends Entity {
 				dieDeck.sort();
 				dieDeck.reverse();
 
-				if (minFaceValue > 6 && dieDeck.size > 3 && new Random().nextInt(100) > 10) {
+				if (minFaceValue > 6 && dieDeck.size > 3 && new Random().nextInt(100) > 74) {
 					dieDeck.sort();
 					dieDeck.reverse();
 					dieDeck.removeRange(3, dieDeck.size - 1);

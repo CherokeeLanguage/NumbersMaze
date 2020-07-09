@@ -32,7 +32,6 @@ import com.cherokeelessons.maze.screen.GameSlot;
 import com.cherokeelessons.maze.screen.LoadingScreen;
 import com.cherokeelessons.maze.screen.MainMenu;
 import com.cherokeelessons.maze.screen.OnePlayerScreen;
-import com.cherokeelessons.maze.screen.Paused;
 import com.cherokeelessons.maze.screen.SaveLoadMode;
 import com.cherokeelessons.maze.screen.SaveLoadScreen;
 import com.cherokeelessons.maze.screen.ScreenBase;
@@ -51,7 +50,6 @@ public class NumbersMaze extends Game {
 		gs.setModified(slots.getLong(ix + "-modified", 0));
 		gs.setName(slots.getString(ix + "-name", ""));
 		gs.setScore(slots.getInteger(ix + "-score", 0));
-		gs.setUltimate(slots.getBoolean(ix + "-ultimate", false));
 		gs.setSlot(ix);
 		Gdx.app.log(NumbersMaze.class.getSimpleName(), "Loaded Game: " + gs.toString());
 		return gs;
@@ -66,7 +64,6 @@ public class NumbersMaze extends Game {
 		slots.putLong(ix + "-modified", gs.getModified());
 		slots.putString(ix + "-name", gs.getName());
 		slots.putInteger(ix + "-score", gs.getScore());
-		slots.putBoolean(ix + "-ultimate", gs.isUltimate());
 		slots.flush();
 		Gdx.app.log(NumbersMaze.class.getSimpleName(), "Saved Game: " + gs.toString());
 		return gs;
@@ -98,7 +95,7 @@ public class NumbersMaze extends Game {
 	}
 
 	public enum ScreenList {
-		MAIN_MENU, RESUME_GAME, LOADING, LEVEL_START, UltimateScreen, PREVIOUS_SCREEN, PAUSED, SAVE_GAME, LOAD_GAME_SLOT,
+		MAIN_MENU, RESUME_GAME, LOADING, LEVEL_START, UltimateScreen, PREVIOUS_SCREEN, SAVE_GAME, LOAD_GAME_SLOT,
 		UltimateOnePlayer;
 	}
 
@@ -143,7 +140,6 @@ public class NumbersMaze extends Game {
 	public SinglePlayerMazeScreen ultimatePlayerMazeScreen;
 	public ScreenBase onePlayer;
 	Array<ScreenList> screenStack = new Array<>();
-	Paused paused = null;
 
 	private SaveLoadScreen saveGameScreen = null;
 
@@ -350,19 +346,8 @@ public class NumbersMaze extends Game {
 			screenStack.add(ScreenList.LEVEL_START);
 			setScreen(onePlayer);
 			break;
-		case PAUSED:
-			if (!getActiveScreen().equals(ScreenList.PAUSED)) {
-				if (paused != null) {
-					paused.dispose();
-				}
-				paused = new Paused(this);
-				setScreen(paused);
-				screenStack.add(ScreenList.PAUSED);
-			}
-			break;
 		case PREVIOUS_SCREEN:
 			popScreenStack();
-			popScreenStack(ScreenList.PAUSED);
 			final ScreenChangeEvent e = new ScreenChangeEvent();
 			e.screen = getActiveScreen();
 			if (e.screen == null) {

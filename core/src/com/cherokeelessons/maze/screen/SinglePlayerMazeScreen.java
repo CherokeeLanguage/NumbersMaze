@@ -159,8 +159,6 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	 */
 	private float nextOrb = 0;
 
-	private long simStart = 0;
-
 	private final Vector2 aabb_size = new Vector2();
 
 	private final Vector2 aabb_lower = new Vector2();
@@ -177,15 +175,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 	private final Array<Entity> blockList = new Array<>();
 
-	public boolean ultimate = false;
-
 	public long timelimit = 0l;
 
 	public SinglePlayerMazeScreen(final NumbersMaze app, final DataBundle _data) {
 		super();
 		data.put(_data);
 		level = Math.max(data.getInteger("level", 1), 1);
-		ultimate = data.getBoolean("ultimate", false);
 		theScore = data.getInteger("score");
 
 		backgroundColor = Color.WHITE;
@@ -1143,21 +1138,20 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	@Override
 	public void render(final float delta) {
 
-		if (lastChallenge != theChallenge) {
-			lastChallenge = theChallenge;
-			final PlayNumberSequence p = new PlayNumberSequence();
-			p.list.addAll(GenerateNumber.getAudioSequence(theChallenge));
-			p.screen = this;
-			NumbersMaze.post(p);
+		if (!paused) {
+			if (lastChallenge != theChallenge) {
+				lastChallenge = theChallenge;
+				final PlayNumberSequence p = new PlayNumberSequence();
+				p.list.addAll(GenerateNumber.getAudioSequence(theChallenge));
+				p.screen = this;
+				NumbersMaze.post(p);
+			}
+			
+			if (maxInPlay < theChallenge) {
+				maxInPlay = theChallenge;
+			}
 		}
 
-		if (ultimate) {
-			updateTimeLeft();
-		}
-
-		if (maxInPlay < theChallenge) {
-			maxInPlay = theChallenge;
-		}
 
 		final float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
 		final float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
@@ -1299,21 +1293,16 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					final Entity e = i.next();
 					if (e.identity == Entity.PLAYER) {
 						totalValueLeft = -1;
-						if (ultimate) {
-							theScore += getSecondsLeft();
-						}
 						final ScreenChangeEvent e1 = new ScreenChangeEvent();
 						final int ix = data.getInteger("slot", 0);
 						e1.data.putInteger("slot", ix);
 						e1.data.putInteger("level", level + 1);
 						e1.data.putInteger("score", theScore);
-						e1.data.putBoolean("ultimate", ultimate);
 						GameSlot slot = NumbersMaze.loadSlot(ix);
 						slot.setLevel(level + 1);
 						slot.setModified(System.currentTimeMillis());
 						slot.setScore(theScore);
 						slot.setSlot(ix);
-						slot.setUltimate(ultimate);
 						NumbersMaze.saveSlot(slot);
 						e1.screen = ScreenList.RESUME_GAME;
 						NumbersMaze.post(e1);
@@ -1323,7 +1312,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 			}
 		}
-		updateBox2dWorld();
+		updateBox2dWorld(delta);
 		updateStageWithWorld();
 	}
 
@@ -1374,27 +1363,9 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			e.loop = true;
 			NumbersMaze.post(e);
 		}
-		if (ultimate && timeLeft == null) {
-			final AtlasRegion timeRemainingRegion = S.getArg().findRegion("block_ltblue");
-			final NinePatch timeRemaining_9 = new NinePatch(timeRemainingRegion, 12, 12, 12, 12);
-			final LabelStyle timeRemainingStyle = new LabelStyle(S.getFnt().getFont(20), new Color(Color.DARK_GRAY));
-			timeRemainingStyle.background = new NinePatchDrawable(timeRemaining_9);
-			timeRemainingStyle.font.setFixedWidthGlyphs("0123456789");
-			timeLeft = new Label("00:00", timeRemainingStyle);
-			timeLeft.pack();
-			timeLeft.setX(overscan.x + overscan.width - timeLeft.getWidth());
-			timeLeft.setOrigin(timeLeft.getWidth() / 2, timeLeft.getHeight() / 2);
-			timeLeft.setHeight(timeLeft.getHeight() * .6f);
-			timeLeft.layout();
-			timeLeft.setY(overscan.y + overscan.height - timeLeft.getHeight());
-			hud.addActor(timeLeft);
-			updateTimeLeft();
-		}
 	}
 
-	private void updateBox2dWorld() {
-		float simDelta = (System.currentTimeMillis() - simStart) / 1000f;
-		simStart = System.currentTimeMillis();
+	private void updateBox2dWorld(float simDelta) {
 		if (simDelta > simStepRate * 2) {
 			simDelta = simStepRate * 2;
 		}
@@ -1403,7 +1374,6 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			world.step(simStepRate);
 			simElapsed -= simStepRate;
 		}
-
 	}
 
 	private void updateStageWithWorld() {

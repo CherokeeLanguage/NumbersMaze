@@ -140,16 +140,9 @@ public class MainMenu extends ScreenBase {
 				NumbersMaze.post(e);
 				break;
 			case 1:
-				e.data.putInteger("level", 50);
-				e.data.putInteger("score", 0);
-				e.data.putBoolean("ultimate", true);
-				e.screen = ScreenList.LEVEL_START;
-				NumbersMaze.post(e);
-				break;
-			case 2:
 				// app.switchTo(ScreenList.OptionsScreen);
 				break;
-			case 3:
+			case 2:
 				// app.switchTo(ScreenList.AboutScreen);
 				break;
 			default:
@@ -238,20 +231,6 @@ public class MainMenu extends ScreenBase {
 			}
 		});
 		menuItems.add(loadGame);
-
-		final TextButton ultimateChallenge = new TextButton("Ultimate Challenge!", mainStyle);
-		ultimateChallenge.addListener(new ClickListener() {
-			int item = menuItems.size();
-
-			@Override
-			public void clicked(final InputEvent event, final float x, final float y) {
-				Gdx.app.log(this.getClass().getSimpleName(), "Ultimate Challenge!");
-				menu_item = item;
-				setButton.run();
-				doButton.run();
-			}
-		});
-		menuItems.add(ultimateChallenge);
 
 		final TextButton options = new TextButton("Options", mainStyle);
 		options.addListener(new ClickListener() {

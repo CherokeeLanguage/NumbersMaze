@@ -5,7 +5,6 @@ public class GameSlot {
 	private int slot = 0;
 	private int score = 0;
 	private int level = 0;
-	private boolean ultimate = false;
 	private long elapsed = 0;
 	private long modified = 0;
 
@@ -41,14 +40,6 @@ public class GameSlot {
 		this.level = level;
 	}
 
-	public boolean isUltimate() {
-		return ultimate;
-	}
-
-	public void setUltimate(boolean ultimate) {
-		this.ultimate = ultimate;
-	}
-
 	public long getElapsed() {
 		return elapsed;
 	}
@@ -80,8 +71,6 @@ public class GameSlot {
 		builder.append(score);
 		builder.append(", level=");
 		builder.append(level);
-		builder.append(", ultimate=");
-		builder.append(ultimate);
 		builder.append(", elapsed=");
 		builder.append(elapsed);
 		builder.append(", modified=");

@@ -13,14 +13,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.cherokeelessons.maze.DisplaySize;
-import com.cherokeelessons.maze.NumbersMaze;
-import com.cherokeelessons.maze.NumbersMaze.ScreenChangeEvent;
-import com.cherokeelessons.maze.NumbersMaze.ScreenList;
 import com.cherokeelessons.maze.stage.StageBase;
 
 public class ScreenBase implements Screen {
@@ -29,7 +24,7 @@ public class ScreenBase implements Screen {
 		void render(float delta);
 	}
 
-	protected boolean isDisposed = false;
+	protected boolean disposed = false;
 	protected SpriteBatch sb;
 	protected AssetManager assets;
 	protected StageBase gameStage;
@@ -66,28 +61,24 @@ public class ScreenBase implements Screen {
 			backDrop.draw();
 		}
 	};
-	long gameStageActTime = 0;
-	long gameStageRenderTime = 0;
 	protected Renderer r_stage = new Renderer() {
 		@Override
 		public void render(final float delta) {
-			long start;
-
-			start = System.currentTimeMillis();
-			gameStage.act(delta);
-			gameStageActTime = (System.currentTimeMillis() - start + gameStageActTime * 4) / 5;
-
-			start = System.currentTimeMillis();
+			if (!paused) {
+				gameStage.act(delta);
+			}
+			
 			gameStage.getViewport().apply();
 			gameStage.draw();
-			gameStageRenderTime = (System.currentTimeMillis() - start + gameStageRenderTime * 4) / 5;
 		}
 	};
 	protected Renderer r_hud = new Renderer() {
 
 		@Override
 		public void render(final float delta) {
-			hud.act(delta);
+			if (!paused) {
+				hud.act(delta);
+			}
 			hud.getViewport().apply();
 			hud.draw();
 		}
@@ -149,10 +140,10 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void dispose() {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
-		isDisposed = true;
+		disposed = true;
 		Gdx.app.log(this.getClass().getSimpleName(), "Dispose: " + getClass().getSimpleName());
 		disconnectInputProcessor();
 
@@ -195,7 +186,7 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void hide() {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		Gdx.app.log(this.getClass().getSimpleName(), "Hide: " + getClass().getSimpleName());
@@ -210,15 +201,15 @@ public class ScreenBase implements Screen {
 		return showFPS;
 	}
 
+	protected boolean paused;
+	
 	@Override
 	public void pause() {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		Gdx.app.log(this.getClass().getSimpleName(), "Pause: " + getClass().getSimpleName());
-		final ScreenChangeEvent e = new ScreenChangeEvent();
-		e.screen = ScreenList.PAUSED;
-		NumbersMaze.post(e);
+		paused=true;
 	}
 
 	public void postRunnable(final Runnable runnable) {
@@ -229,7 +220,7 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void render(final float delta) {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		synchronized (screenRunnable) {
@@ -256,7 +247,7 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void resize(final int width, final int height) {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		float scale_h;
@@ -318,10 +309,11 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void resume() {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		Gdx.app.log(this.getClass().getSimpleName(), "Resume: " + getClass().getSimpleName());
+		paused=false;
 		if (r == null) {
 			r = new ShapeRenderer();
 		}
@@ -341,7 +333,7 @@ public class ScreenBase implements Screen {
 
 	@Override
 	public void show() {
-		if (isDisposed) {
+		if (disposed) {
 			return;
 		}
 		if (isDebug()) {
