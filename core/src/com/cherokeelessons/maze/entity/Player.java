@@ -236,8 +236,8 @@ public class Player extends Entity {
 			}
 		}
 
-		impulse.x = gamepad.deltaX;
-		impulse.y = gamepad.deltaY;
+		impulse.x = gamepad.deltaX;//*.7f;
+		impulse.y = gamepad.deltaY;//*.7f;
 
 		// change graphic and such to match new movement impulse
 		// determine direction based on magnitude and update texture being
@@ -355,7 +355,7 @@ public class Player extends Entity {
 		body.setUserData(this);
 		body.setFixedRotation(true);
 		body.setLinearVelocity(new Vector2(0f, 0f));
-		body.setLinearDamping(4.0f);
+		body.setLinearDamping(8f);
 		body.setAngularDamping(4.5f);
 		showAvatar(lastDir);
 	}

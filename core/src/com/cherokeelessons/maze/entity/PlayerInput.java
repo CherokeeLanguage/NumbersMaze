@@ -48,8 +48,30 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 		return false;
 	}
 
+	private void log(String message) {
+		Gdx.app.log(this.getClass().getName(), message);
+	}
 	@Override
 	public boolean axisMoved(final Controller controller, final int axisCode, float value) {
+		value = ((int)(value * 100f))/100f;
+		// deadzone check
+		if (value < .15 && value > -.15) {
+			value = 0;
+		}
+		
+//		if (value!=0) {
+//			Array<Controller> controllers = Controllers.getControllers();
+//			String w = "";
+//			for (int ix=0; ix<controllers.size; ix++) {
+//				if (controllers.get(ix)==controller) {
+//					w="Controller "+(ix+1);
+//					break;
+//				}
+//			}
+//			String c = controller==null?"(null)":w+" "+controller.getName();
+//			log(c+" => axisMoved: "+axisCode+"="+value);
+//		}
+		
 		// d-pad on android check part I
 		if (axisCode == Xbox.DPAD_AXIS_X || axisCode == Xbox.DPAD_AXIS_Y) {
 			if (axisCode == Xbox.DPAD_AXIS_X) {
@@ -94,16 +116,15 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 			}
 		}
 
-		// deadzone check
-		if (value < .2 && value > -.2) {
-			value = 0;
-		}
 		if (!lastAxis.containsKey(axisCode)) {
 			lastAxis.put(axisCode, 0f);
 		}
 		final float delta = lastAxis.get(axisCode) - value;
 		// denoise
-		if (delta < .005 && delta > -.005) {
+		if (delta < .01 && delta > -.01) {
+			if (value!=0) {
+				log("axisMoved: denoised");
+			}
 			return false;
 		}
 		lastAxis.put(axisCode, value);

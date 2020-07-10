@@ -138,12 +138,12 @@ public class TheWorld {
 					if (e2.identity == Entity.EXPLOSION || e2.identity == Entity.ARROW) {
 						break;
 					}
-					// force of 9+ for between block & non-block
-					if ((e1.identity != Entity.BLOCK || e2.identity != Entity.BLOCK) && i[0] < 9) {
+					// force of 12+ for between block & non-block
+					if ((e1.identity != Entity.BLOCK || e2.identity != Entity.BLOCK) && i[0] < 12) {
 						return;
 					}
-					// force of 4+ for between blocks
-					if (i[0] < 4) {
+					// force of 7+ for between blocks
+					if (i[0] < 7) {
 						return;
 					}
 					Gdx.app.log(this.getClass().getSimpleName(),
@@ -156,21 +156,21 @@ public class TheWorld {
 
 						@Override
 						public void run() {
-							final ChainedExplosions arrowGroup = new ChainedExplosions();
+							final ChainedExplosions chainedExplosions = new ChainedExplosions();
 							Arrow a;
 							a = new Arrow();
 							a.getColor().a = 0f;// make invisible
 							a.setWorldScale(e1.getWorldScale());
-							arrowGroup.group.addActor(a);
-							a.addToWorld(world, v1, arrowGroup);
+							chainedExplosions.group.addActor(a);
+							a.addToWorld(world, v1, chainedExplosions);
 							a.fire(new Vector2(0f, 0f));
 							a = new Arrow();
 							a.getColor().a = 0f;// make invisible
 							a.setWorldScale(e2.getWorldScale());
-							arrowGroup.group.addActor(a);
-							a.addToWorld(world, v2, arrowGroup);
+							chainedExplosions.group.addActor(a);
+							a.addToWorld(world, v2, chainedExplosions);
 							a.fire(new Vector2(0f, 0f));
-							orphan_tracker.add(arrowGroup);
+							orphan_tracker.add(chainedExplosions);
 						}
 					});
 				} while (false);
