@@ -265,7 +265,7 @@ public class NumbersMaze extends Game {
 		final PixmapPacker packer = new PixmapPacker(packSize, packSize, Format.RGBA8888, 1, true);
 
 		final ArrayList<String> imgList = new ArrayList<>();
-		imgList.addAll(Arrays.asList(Gdx.files.internal("720p/plist.txt").readString("UTF-8").split("\n")));
+		imgList.addAll(Arrays.asList(Gdx.files.internal("plist.txt").readString("UTF-8").split("\n")));
 		Gdx.app.log(this.getClass().getSimpleName(), "Read " + imgList.size() + " plist entries.");
 		for (final String img : imgList) {
 			if (img.trim().length() < 1) {

@@ -49,6 +49,11 @@ public class Entity extends Image {
 
 	protected float worldScale = 1;
 
+	/**
+	 * If this object's world position is not in these bounds, don't draw it. Should
+	 * point to a commonly shared Rectangle object that is updated at a single point
+	 * before draw is called.
+	 */
 	protected Rectangle cull = null;
 
 	final protected Vector2 worldCenter = new Vector2(0, 0);
@@ -257,7 +262,7 @@ public class Entity extends Image {
 	/**
 	 * If this object's world position is not in these bounds, don't draw it. Should
 	 * point to a commonly shared Rectangle object that is updated at a single point
-	 * before act is called.
+	 * before draw is called.
 	 *
 	 * @param cull
 	 */

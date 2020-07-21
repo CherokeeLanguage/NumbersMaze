@@ -122,9 +122,6 @@ public class PlayerInput implements ControllerListener, InputProcessor {
 		final float delta = lastAxis.get(axisCode) - value;
 		// denoise
 		if (delta < .01 && delta > -.01) {
-			if (value!=0) {
-				log("axisMoved: denoised");
-			}
 			return false;
 		}
 		lastAxis.put(axisCode, value);

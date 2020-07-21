@@ -97,7 +97,10 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 	private TheWorld world;
 
-	final protected Rectangle culler = new Rectangle();
+	/**
+	 * If this object's world position is not in these bounds, don't draw it.
+	 */
+	protected final Rectangle culler = new Rectangle();
 
 	private Box2DDebugRenderer debugRenderer = null;
 
@@ -144,7 +147,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	private long restoreBlockTick = 0;
 	private final Array<Entity> eList = new Array<>();
 
-	Vector2 playerPos = new Vector2();
+	Vector2 playerWorldPos = new Vector2();
 	private boolean showPortal;
 	private long mem1;
 
@@ -172,6 +175,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	int tileGrideSize = 32;
 
 	AtlasRegion[] number_tile = null;
+	int[] number_tile_values = null;
+	Color[] number_tile_colors = null;
 
 	private final Array<Entity> blockList = new Array<>();
 
@@ -261,7 +266,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		player1.scoreFont = S.getFnt().getFont(40);
 
 		gameStage.addActor(player1);
-		playerPos = player1.getWorldCenter();
+		playerWorldPos = player1.getWorldCenter();
 		joylist = Controllers.getControllers();
 
 		for (final Controller c : joylist) {
@@ -290,15 +295,79 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 		final Random rand = new Random(mazeNumber);
 
-		number_tile = new AtlasRegion[8];
-		number_tile[0] = S.getArg().findRegion("d1");
-		number_tile[1] = S.getArg().findRegion("d2");
-		number_tile[2] = S.getArg().findRegion("d3");
-		number_tile[3] = S.getArg().findRegion("d4");
-		number_tile[4] = S.getArg().findRegion("d5");
-		number_tile[5] = S.getArg().findRegion("d6");
-		number_tile[6] = S.getArg().findRegion("super-die-20");
-		number_tile[7] = S.getArg().findRegion("super-die-80");
+		int tileCount = 9;
+		
+		number_tile = new AtlasRegion[tileCount];
+		number_tile_values = new int[tileCount];
+		number_tile_colors = new Color[tileCount];
+		
+		int difficultyIncrease = 2; 
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[0] = S.getArg().findRegion("sagwu");
+		} else {
+			number_tile[0] = S.getArg().findRegion("d1");
+		}
+		number_tile_values[0] = 1;
+		number_tile_colors[0]=new Color(Color.CORAL);
+		
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[1] = S.getArg().findRegion("tali");
+		} else {
+			number_tile[1] = S.getArg().findRegion("d2");
+		}
+		number_tile_values[1] = 2;
+		number_tile_colors[1]=new Color(255f/255f, 160f/255f, 122f/255f, 1);//light salmon
+		
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[2] = S.getArg().findRegion("joi");
+		} else {
+			number_tile[2] = S.getArg().findRegion("d3");
+		}
+		number_tile_values[2] = 3;
+		number_tile_colors[2]=new Color(238f/255f, 232f/255f, 170f/255f, 1);//pale golden rod
+		
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[3] = S.getArg().findRegion("nvgi");
+		} else {
+			number_tile[3] = S.getArg().findRegion("d4");
+		}
+		number_tile_values[3] = 4;
+		number_tile_colors[3]=new Color(144f/255f, 238f/255f, 144f/255f, 1);//light green
+		
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[4] = S.getArg().findRegion("hisgi");
+		} else {
+			number_tile[4] = S.getArg().findRegion("d5");
+		}
+		number_tile_values[4] = 5;
+		number_tile_colors[4]=new Color(102f/255f, 205f/255f, 170f/255f, 1);//medium aqua marine
+		
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (mazeNumber>difficultyIncrease) {
+			number_tile[5] = S.getArg().findRegion("sudali");
+		} else {
+			number_tile[5] = S.getArg().findRegion("d6");
+		}
+		number_tile_values[5]=6;
+		number_tile_colors[5]=new Color(64f/255f, 224f/255f, 208f/255f, 1);//turquoise
+		
+		number_tile[6] = S.getArg().findRegion("sgohi");
+		number_tile_values[6]=10;
+		number_tile_colors[6]=new Color(176f/255f, 224f/255f, 230f/255f, 1);//powder blue
+		
+		number_tile[7] = S.getArg().findRegion("super-die-20");
+		number_tile_values[7]=20;
+		number_tile_colors[7]=new Color(135f/255f, 206f/255f, 235f/255f, 1);//sky blue
+		
+		number_tile[8] = S.getArg().findRegion("super-die-80");
+		number_tile_values[8]=80;
+		number_tile_colors[8]=new Color(238f/255f, 130f/255f, 238f/255f, 1);//violet
+		
+		//ref: https://www.rapidtables.com/web/color/RGB_Color.html
 
 		final AtlasRegion[] floor_tile = new AtlasRegion[5];
 		for (int ix = 0; ix < 5; ix++) {
@@ -763,30 +832,22 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			final Vector2 pos = initialPortal.get(ix);
 
 			int dieFace;
-
-			if (maxFaceValue>=80) {
-				dieFace = rand.nextInt(8);
-			} else if (maxFaceValue>=20) {
-				dieFace = rand.nextInt(7);
-			} else {
-				dieFace = rand.nextInt(Math.min(maxFaceValue, 6));
-			}
+			int dieValue;
+			
+			do {
+				dieFace = rand.nextInt(number_tile.length);
+				dieValue=number_tile_values[dieFace];
+			} while (dieValue>maxFaceValue);
+			
 			if (level == 1 && ix == 0) {
 				dieFace = 0;
-			}
-			int dieValue=dieFace;
-			if (dieFace==6) {
-				dieValue=20;
-			}
-			if (dieFace==7) {
-				dieValue=80;
 			}
 			
 			if (getBlocklistSum(blockList)+dieValue>getChallengeSum()) {
 				continue;
 			}
 
-			final Entity tile = generateBlockTile(number_tile, pos.x, pos.y, dieFace);
+			final Entity tile = generateBlockTile(pos.x, pos.y, dieFace);
 			imgList.add(tile);
 			blockList.add(tile);
 		}
@@ -918,21 +979,13 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 	}
 
-	private Entity generateBlockTile(final AtlasRegion[] numberTile, final float ix, final float iy,
+	private Entity generateBlockTile(final float ix, final float iy,
 			final int die_face) {
-		final Entity tile = new Entity(numberTile[die_face]);
+		final Entity tile = new Entity(number_tile[die_face]);
 		tile.identity = Entity.BLOCK;
-		tile.value = die_face + 1;
-		if (die_face == 6) {
-			tile.value = 20;
-		}
-		if (die_face == 7) {
-			tile.value = 80;
-		}
-		tile.setColor(Color.WHITE);
-		// float tileSize = tile.getWidth();
-		// box2d is center of body based, set origin of object to
-		// match
+		tile.value = number_tile_values[die_face];
+		tile.setColor(number_tile_colors[die_face]);
+		
 		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
 		tile.setScale(1);
 		tile.setOffsetX(-tile.getWidth() / 2);
@@ -941,7 +994,6 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		tile.setScale(.9f);
 		tile.setPosition(ix * tileGrideSize, iy * tileGrideSize);
 		tile.layout();
-		// tileSize *= tile.getScaleX();
 
 		final float width = tile.getWidth() * tile.getScaleX();
 		final float height = tile.getHeight() * tile.getScaleY();
@@ -949,7 +1001,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.DynamicBody;
 		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD, (-16 + iy * tileGrideSize) * BOX_TO_WORLD);
-		// float rad = (tile.getWidth() * BOX_TO_WORLD / 2);
+		
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1152,19 +1204,46 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 			}
 		}
 
-
-		final float w = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
-		final float h = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
-
-		culler.x = playerPos.x - w / 2;
-		culler.y = playerPos.y - h / 2;
-		culler.width = w;
-		culler.height = h;
-
-		final int camX = (int) player1.getX();
-		final int camY = (int) player1.getY();
-
-		gameStage_camera.position.set(camX, camY, 0);
+		final int playerX = (int) player1.getX();
+		final int playerY = (int) player1.getY();
+		
+		float cameraX = gameStage_camera.position.x;
+		float cameraY = gameStage_camera.position.y;
+		
+		final float maxOffsetX = DisplaySize._720p.width()/4;
+		final float cameraOffsetX = cameraX-playerX;
+		final float absCameraOffsetX =Math.abs(cameraOffsetX);
+		
+		if (absCameraOffsetX > maxOffsetX) {
+			if (cameraOffsetX<0) {
+				cameraX+=(absCameraOffsetX-maxOffsetX)/8f+1f;
+			} else {
+				cameraX-=(absCameraOffsetX-maxOffsetX)/8f+1f;
+			}
+		}
+		
+		final float maxOffsetY = DisplaySize._720p.height()/4;
+		final float cameraOffsetY = cameraY-playerY;
+		final float absCameraOffsetY =Math.abs(cameraOffsetY);
+		
+		if (absCameraOffsetY > maxOffsetY) {
+			if (cameraOffsetY<0) {
+				cameraY+=(absCameraOffsetY-maxOffsetY)/8f+1f;
+			} else {
+				cameraY-=(absCameraOffsetY-maxOffsetY)/8f+1f;
+			}
+		}
+		
+		
+		final float worldDisplayWidth = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
+		final float worldDisplayHeight = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
+		
+		culler.x = cameraX*BOX_TO_WORLD - worldDisplayWidth / 2;
+		culler.y = cameraY*BOX_TO_WORLD - worldDisplayHeight / 2;
+		culler.width = worldDisplayWidth;
+		culler.height = worldDisplayHeight;
+		
+		gameStage_camera.position.set(cameraX, cameraY, 0);
 		gameStage_camera.update();
 
 		super.render(delta);
@@ -1184,7 +1263,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				+ mem2 / (1024 * 1024));
 		info_label.pack();
 		info_label.setY(hud.getHeight() - info_label.getHeight());
-		smp.pos.set(playerPos);
+		smp.pos.set(playerWorldPos);
 		NumbersMaze.post(smp);
 
 		showPortal = false;
@@ -1238,26 +1317,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				final int maxFaceValue = getMaxChallenge();
 				final int minFaceValue = getMinChallenge();
 				if (player1.badValue_hasPending()) {
-					final int dieValue = player1.badValue_getNext(minFaceValue, maxFaceValue);
-					int dieFace = dieValue;
-					if (dieFace == 20) {
-						dieFace = 7;
-					}
-					if (dieFace == 80) {
-						dieFace = 8;
-					}
-					final Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
+					final int theDie = player1.badValue_getNext(number_tile_values, minFaceValue, maxFaceValue);
+					final Entity tile = generateBlockTile(new_block_pos.x, new_block_pos.y, theDie);
 					blockList.add(tile);
 				} else if (world.badValue_hasPending()) {
-					final int dieValue = world.badValue_getNext(minFaceValue, maxFaceValue);
-					int dieFace = dieValue;
-					if (dieFace == 20) {
-						dieFace = 7;
-					}
-					if (dieFace == 80) {
-						dieFace = 8;
-					}
-					final Entity tile = generateBlockTile(number_tile, new_block_pos.x, new_block_pos.y, dieFace - 1);
+					final int theDie = world.badValue_getNext(number_tile_values, minFaceValue, maxFaceValue);
+					final Entity tile = generateBlockTile(new_block_pos.x, new_block_pos.y, theDie);
 					blockList.add(tile);
 				}
 				if (System.currentTimeMillis() > sinceLastNotice) {
@@ -1377,17 +1442,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	private void updateStageWithWorld() {
-		aabb_size.x = culler.width;// DisplaySize._720p.width() /
-									// player1.getWorldScale() + 64f *
-									// BOX_TO_WORLD;
-		aabb_size.y = culler.height;// DisplaySize._720p.height()/
-									// player1.getWorldScale() + 64f *
-									// BOX_TO_WORLD;
+		
+		aabb_size.x = culler.width;
+		aabb_size.y = culler.height;
 
-		aabb_lower.x = playerPos.x - aabb_size.x / 2;
-		aabb_lower.y = playerPos.y - aabb_size.y / 2;
-		aabb_upper.x = playerPos.x + aabb_size.x / 2;
-		aabb_upper.y = playerPos.y + aabb_size.y / 2;
+		aabb_lower.x = culler.x;//-aabb_size.x/2; // playerWorldPos.x - aabb_size.x / 2;
+		aabb_lower.y = culler.y;//-aabb_size.y/2; // playerWorldPos.y - aabb_size.y / 2;
+		aabb_upper.x = culler.x+culler.width;//aabb_size.x/2; // playerWorldPos.x + aabb_size.x / 2;
+		aabb_upper.y = culler.y+culler.height;//aabb_size.y/2; // playerWorldPos.y + aabb_size.y / 2;
 		eList.clear();
 		world.getWorld().QueryAABB(new QueryCallback() {
 			@Override

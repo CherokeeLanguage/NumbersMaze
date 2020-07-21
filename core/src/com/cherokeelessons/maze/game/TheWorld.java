@@ -199,64 +199,42 @@ public class TheWorld {
 		orphan_tracker.add(orphan);
 	}
 
-	public int badValue_getNext(final int minFaceValue, final int maxFaceValue) {
-		int gbv = 0;
+	public int badValue_getNext(int[] number_tile_values, final int minFaceValue, final int maxFaceValue) {
 		if (badAccumulator < 1) {
-			return 1;
+			return 0;
 		}
 		if (badAccumulator == 1) {
 			badAccumulator = 0;
 			return 1;
 		}
+		Integer theDie;
 		do {
 			if (dieDeck.size == 0) {
-				int sides = 8;
-				for (int i = 1; i <= sides; i++) {
-					if (i==7 && (20 > badAccumulator || 20 > maxFaceValue)) {
+				int sides = number_tile_values.length;
+				for (int i = 0; i < sides; i++) {
+					if (number_tile_values[i] > maxFaceValue) {
 						continue;
 					}
-					if (i==8 && (80 > badAccumulator|| 80 > maxFaceValue)) {
-						continue;
-					}
-					if (i > maxFaceValue) {
-						Gdx.app.log(this.getClass().getSimpleName(), "i > maxFaceValue: "+i+">"+maxFaceValue);
-						continue;
-					}
-					if (i > badAccumulator) {
-						Gdx.app.log(this.getClass().getSimpleName(), "i > badAccumulator: "+i+">"+badAccumulator);
+					if (number_tile_values[i] > badAccumulator) {
+						Gdx.app.log(this.getClass().getSimpleName(), "i > badAccumulator: " + i + ">" + badAccumulator);
 						continue;
 					}
 					dieDeck.add(i);
-					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: "+dieDeck.toString());
+					Gdx.app.log(this.getClass().getSimpleName(), "X Die Deck: " + dieDeck.toString());
 				}
-				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: "+dieDeck.toString());
-				if (minFaceValue>6 && dieDeck.size>3 && new Random().nextInt(100) > 74) {
-					dieDeck.sort();
-					dieDeck.reverse();
-					dieDeck.removeRange(3, dieDeck.size-1);
-				}
-				
-				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: "+dieDeck.toString());
-				
+				Gdx.app.log(this.getClass().getSimpleName(), "Y Die Deck: " + dieDeck.toString());
+				dieDeck.sort();
+				dieDeck.reverse();
+				Gdx.app.log(this.getClass().getSimpleName(), "Die Deck: " + dieDeck.toString());
 			}
 			if (dieDeck.isEmpty()) {
 				return 0;
 			}
 			dieDeck.shuffle();
-			gbv = dieDeck.removeIndex(0);
-			// convert die face into VALUE
-			if (gbv == 7) {
-				gbv = 20;
-			}
-			if (gbv == 8) {
-				gbv = 80;
-			}
-		} while (gbv > badAccumulator);
-		badAccumulator -= gbv;
-		if (badAccumulator<0) {
-			badAccumulator=0;
-		}
-		return gbv > 0 ? gbv : 0;
+			theDie = dieDeck.removeIndex(0);
+		} while (number_tile_values[theDie] > badAccumulator);
+		badAccumulator -= number_tile_values[theDie];
+		return theDie;
 	}
 
 	public boolean badValue_hasPending() {
