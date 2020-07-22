@@ -8,13 +8,13 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    viewBox="0 0 30 30"
-   sodipodi:docname="d10.svg"
+   sodipodi:docname="d50.svg"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    version="1.1"
    id="svg2"
    height="30"
    width="30"
-   inkscape:export-filename="/home/muksihs/git/NumbersMaze/Assets/Misc/tiles/d10.png"
+   inkscape:export-filename="d50.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96">
   <defs
@@ -30,9 +30,9 @@
      showgrid="false"
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
-     inkscape:cy="14.238231"
-     inkscape:cx="15.37226"
-     inkscape:zoom="13.716667"
+     inkscape:cy="10.114729"
+     inkscape:cx="57.646113"
+     inkscape:zoom="9.699148"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -47,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -66,14 +66,20 @@
        ry="0" />
     <text
        id="text9"
-       y="92.842552"
-       x="-2.673454"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:32.28523636px;line-height:100%;font-family:CherokeeHandone;-inkscape-font-specification:'CherokeeHandone, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.19473863px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       y="89.456802"
+       x="1.7615095"
+       style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:24px;line-height:100%;font-family:CherokeeHandone;-inkscape-font-specification:'CherokeeHandone, Medium';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:2.19473863px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:32.28523636px;font-family:CherokeeHandone;-inkscape-font-specification:'CherokeeHandone, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;stroke-width:2.19473863px"
-         y="92.842552"
-         x="-2.673454"
+         style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:24px;font-family:CherokeeHandone;-inkscape-font-specification:'CherokeeHandone, Medium';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:2.19473863px"
+         y="89.456802"
+         x="1.7615095"
          id="tspan7"
-         sodipodi:role="line">10</tspan></text>
+         sodipodi:role="line">50</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.71680212px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 3.0004958,93.661258 23.9990082,-0.0332"
+       id="path14"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
   </g>
 </svg>

@@ -364,12 +364,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		number_tile_values[6] = 10;
 		number_tile_colors[6] = new Color(176f / 255f, 224f / 255f, 230f / 255f, 1);// powder blue
 
-		number_tile[7] = S.getArg().findRegion("super-die-20");
+		number_tile[7] = S.getArg().findRegion("d20");//super-die-20");
 		number_tile_values[7] = 20;
 		number_tile_colors[7] = new Color(135f / 255f, 206f / 255f, 235f / 255f, 1);// sky blue
 
-		number_tile[8] = S.getArg().findRegion("super-die-80");
-		number_tile_values[8] = 80;
+		number_tile[8] = S.getArg().findRegion("d50");//super-die-80");
+		number_tile_values[8] = 50;
 		number_tile_colors[8] = new Color(238f / 255f, 130f / 255f, 238f / 255f, 1);// violet
 
 		// ref: https://www.rapidtables.com/web/color/RGB_Color.html
