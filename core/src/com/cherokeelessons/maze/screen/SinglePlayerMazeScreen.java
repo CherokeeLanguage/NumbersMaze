@@ -296,78 +296,83 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final Random rand = new Random(mazeNumber);
 
 		int tileCount = 9;
-		
+
 		number_tile = new AtlasRegion[tileCount];
 		number_tile_values = new int[tileCount];
 		number_tile_colors = new Color[tileCount];
-		
-		int difficultyIncrease = 2; 
-		if (mazeNumber>difficultyIncrease) {
+
+		int difficultyIncrease = 2;
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[0] = S.getArg().findRegion("sagwu");
 		} else {
 			number_tile[0] = S.getArg().findRegion("d1");
 		}
 		number_tile_values[0] = 1;
-		number_tile_colors[0]=new Color(Color.CORAL);
-		
+		number_tile_colors[0] = new Color(Color.CORAL);
+
 		difficultyIncrease = (int) (1.7 * difficultyIncrease);
-		if (mazeNumber>difficultyIncrease) {
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[1] = S.getArg().findRegion("tali");
 		} else {
 			number_tile[1] = S.getArg().findRegion("d2");
 		}
 		number_tile_values[1] = 2;
-		number_tile_colors[1]=new Color(255f/255f, 160f/255f, 122f/255f, 1);//light salmon
-		
+		number_tile_colors[1] = new Color(255f / 255f, 160f / 255f, 122f / 255f, 1);// light salmon
+
 		difficultyIncrease = (int) (1.7 * difficultyIncrease);
-		if (mazeNumber>difficultyIncrease) {
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[2] = S.getArg().findRegion("joi");
 		} else {
 			number_tile[2] = S.getArg().findRegion("d3");
 		}
 		number_tile_values[2] = 3;
-		number_tile_colors[2]=new Color(238f/255f, 232f/255f, 170f/255f, 1);//pale golden rod
-		
+		number_tile_colors[2] = new Color(238f / 255f, 232f / 255f, 170f / 255f, 1);// pale golden rod
+
 		difficultyIncrease = (int) (1.7 * difficultyIncrease);
-		if (mazeNumber>difficultyIncrease) {
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[3] = S.getArg().findRegion("nvgi");
 		} else {
 			number_tile[3] = S.getArg().findRegion("d4");
 		}
 		number_tile_values[3] = 4;
-		number_tile_colors[3]=new Color(144f/255f, 238f/255f, 144f/255f, 1);//light green
-		
+		number_tile_colors[3] = new Color(144f / 255f, 238f / 255f, 144f / 255f, 1);// light green
+
 		difficultyIncrease = (int) (1.7 * difficultyIncrease);
-		if (mazeNumber>difficultyIncrease) {
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[4] = S.getArg().findRegion("hisgi");
 		} else {
 			number_tile[4] = S.getArg().findRegion("d5");
 		}
 		number_tile_values[4] = 5;
-		number_tile_colors[4]=new Color(102f/255f, 205f/255f, 170f/255f, 1);//medium aqua marine
-		
+		number_tile_colors[4] = new Color(102f / 255f, 205f / 255f, 170f / 255f, 1);// medium aqua marine
+
 		difficultyIncrease = (int) (1.7 * difficultyIncrease);
-		if (mazeNumber>difficultyIncrease) {
+		if (false && mazeNumber > difficultyIncrease) {
 			number_tile[5] = S.getArg().findRegion("sudali");
 		} else {
 			number_tile[5] = S.getArg().findRegion("d6");
 		}
-		number_tile_values[5]=6;
-		number_tile_colors[5]=new Color(64f/255f, 224f/255f, 208f/255f, 1);//turquoise
-		
-		number_tile[6] = S.getArg().findRegion("sgohi");
-		number_tile_values[6]=10;
-		number_tile_colors[6]=new Color(176f/255f, 224f/255f, 230f/255f, 1);//powder blue
-		
+		number_tile_values[5] = 6;
+		number_tile_colors[5] = new Color(64f / 255f, 224f / 255f, 208f / 255f, 1);// turquoise
+
+		difficultyIncrease = (int) (1.7 * difficultyIncrease);
+		if (false && mazeNumber > difficultyIncrease) {
+			number_tile[6] = S.getArg().findRegion("sgohi");
+		} else {
+			number_tile[6] = S.getArg().findRegion("d10");
+		}
+		number_tile_values[6] = 10;
+		number_tile_colors[6] = new Color(176f / 255f, 224f / 255f, 230f / 255f, 1);// powder blue
+
 		number_tile[7] = S.getArg().findRegion("super-die-20");
-		number_tile_values[7]=20;
-		number_tile_colors[7]=new Color(135f/255f, 206f/255f, 235f/255f, 1);//sky blue
-		
+		number_tile_values[7] = 20;
+		number_tile_colors[7] = new Color(135f / 255f, 206f / 255f, 235f / 255f, 1);// sky blue
+
 		number_tile[8] = S.getArg().findRegion("super-die-80");
-		number_tile_values[8]=80;
-		number_tile_colors[8]=new Color(238f/255f, 130f/255f, 238f/255f, 1);//violet
-		
-		//ref: https://www.rapidtables.com/web/color/RGB_Color.html
+		number_tile_values[8] = 80;
+		number_tile_colors[8] = new Color(238f / 255f, 130f / 255f, 238f / 255f, 1);// violet
+
+		// ref: https://www.rapidtables.com/web/color/RGB_Color.html
 
 		final AtlasRegion[] floor_tile = new AtlasRegion[5];
 		for (int ix = 0; ix < 5; ix++) {
@@ -826,24 +831,24 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 		// create and place the initial number blocks
 		log("=== Initial Dice Placement");
-		log("--- count: "+initialPortal.size);
-		log("--- max face value: "+maxFaceValue);
+		log("--- count: " + initialPortal.size);
+		log("--- max face value: " + maxFaceValue);
 		for (int ix = 0; ix < initialPortal.size; ix++) {
 			final Vector2 pos = initialPortal.get(ix);
 
 			int dieFace;
 			int dieValue;
-			
+
 			do {
 				dieFace = rand.nextInt(number_tile.length);
-				dieValue=number_tile_values[dieFace];
-			} while (dieValue>maxFaceValue);
-			
+				dieValue = number_tile_values[dieFace];
+			} while (dieValue > maxFaceValue);
+
 			if (level == 1 && ix == 0) {
 				dieFace = 0;
 			}
-			
-			if (getBlocklistSum(blockList)+dieValue>getChallengeSum()) {
+
+			if (getBlocklistSum(blockList) + dieValue > getChallengeSum()) {
 				continue;
 			}
 
@@ -979,13 +984,12 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		}
 	}
 
-	private Entity generateBlockTile(final float ix, final float iy,
-			final int die_face) {
+	private Entity generateBlockTile(final float ix, final float iy, final int die_face) {
 		final Entity tile = new Entity(number_tile[die_face]);
 		tile.identity = Entity.BLOCK;
 		tile.value = number_tile_values[die_face];
 		tile.setColor(number_tile_colors[die_face]);
-		
+
 		tile.setOrigin(tile.getWidth() / 2, tile.getHeight() / 2);
 		tile.setScale(1);
 		tile.setOffsetX(-tile.getWidth() / 2);
@@ -1001,7 +1005,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 		final BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyType.DynamicBody;
 		bodyDef.position.set((-16 + ix * tileGrideSize) * BOX_TO_WORLD, (-16 + iy * tileGrideSize) * BOX_TO_WORLD);
-		
+
 		final Body body = world.getWorld().createBody(bodyDef);
 		body.setFixedRotation(false);
 		body.setLinearVelocity(new Vector2(0f, 0f));
@@ -1198,7 +1202,7 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 				p.screen = this;
 				NumbersMaze.post(p);
 			}
-			
+
 			if (maxInPlay < theChallenge) {
 				maxInPlay = theChallenge;
 			}
@@ -1206,43 +1210,42 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 
 		final int playerX = (int) player1.getX();
 		final int playerY = (int) player1.getY();
-		
+
 		float cameraX = gameStage_camera.position.x;
 		float cameraY = gameStage_camera.position.y;
-		
-		final float maxOffsetX = DisplaySize._720p.width()/4;
-		final float cameraOffsetX = cameraX-playerX;
-		final float absCameraOffsetX =Math.abs(cameraOffsetX);
-		
+
+		final float maxOffsetX = DisplaySize._720p.width() / 4;
+		final float cameraOffsetX = cameraX - playerX;
+		final float absCameraOffsetX = Math.abs(cameraOffsetX);
+
 		if (absCameraOffsetX > maxOffsetX) {
-			if (cameraOffsetX<0) {
-				cameraX+=(absCameraOffsetX-maxOffsetX)/8f+1f;
+			if (cameraOffsetX < 0) {
+				cameraX += (absCameraOffsetX - maxOffsetX) / 8f + 1f;
 			} else {
-				cameraX-=(absCameraOffsetX-maxOffsetX)/8f+1f;
+				cameraX -= (absCameraOffsetX - maxOffsetX) / 8f + 1f;
 			}
 		}
-		
-		final float maxOffsetY = DisplaySize._720p.height()/4;
-		final float cameraOffsetY = cameraY-playerY;
-		final float absCameraOffsetY =Math.abs(cameraOffsetY);
-		
+
+		final float maxOffsetY = DisplaySize._720p.height() / 4;
+		final float cameraOffsetY = cameraY - playerY;
+		final float absCameraOffsetY = Math.abs(cameraOffsetY);
+
 		if (absCameraOffsetY > maxOffsetY) {
-			if (cameraOffsetY<0) {
-				cameraY+=(absCameraOffsetY-maxOffsetY)/8f+1f;
+			if (cameraOffsetY < 0) {
+				cameraY += (absCameraOffsetY - maxOffsetY) / 8f + 1f;
 			} else {
-				cameraY-=(absCameraOffsetY-maxOffsetY)/8f+1f;
+				cameraY -= (absCameraOffsetY - maxOffsetY) / 8f + 1f;
 			}
 		}
-		
-		
+
 		final float worldDisplayWidth = DisplaySize._720p.width() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
 		final float worldDisplayHeight = DisplaySize._720p.height() * BOX_TO_WORLD + 13 * 32 * BOX_TO_WORLD;
-		
-		culler.x = cameraX*BOX_TO_WORLD - worldDisplayWidth / 2;
-		culler.y = cameraY*BOX_TO_WORLD - worldDisplayHeight / 2;
+
+		culler.x = cameraX * BOX_TO_WORLD - worldDisplayWidth / 2;
+		culler.y = cameraY * BOX_TO_WORLD - worldDisplayHeight / 2;
 		culler.width = worldDisplayWidth;
 		culler.height = worldDisplayHeight;
-		
+
 		gameStage_camera.position.set(cameraX, cameraY, 0);
 		gameStage_camera.update();
 
@@ -1330,7 +1333,8 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 					sinceLastNotice = System.currentTimeMillis() + 30000;
 				}
 			}
-			//Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " + totalValueLeft);
+			// Gdx.app.log(this.getClass().getSimpleName(), "=== totalValueRemaining: " +
+			// totalValueLeft);
 			restoreBlockTick = System.currentTimeMillis();
 		}
 		// should portal be available check
@@ -1442,14 +1446,14 @@ public class SinglePlayerMazeScreen extends ScreenBase {
 	}
 
 	private void updateStageWithWorld() {
-		
+
 		aabb_size.x = culler.width;
 		aabb_size.y = culler.height;
 
-		aabb_lower.x = culler.x;//-aabb_size.x/2; // playerWorldPos.x - aabb_size.x / 2;
-		aabb_lower.y = culler.y;//-aabb_size.y/2; // playerWorldPos.y - aabb_size.y / 2;
-		aabb_upper.x = culler.x+culler.width;//aabb_size.x/2; // playerWorldPos.x + aabb_size.x / 2;
-		aabb_upper.y = culler.y+culler.height;//aabb_size.y/2; // playerWorldPos.y + aabb_size.y / 2;
+		aabb_lower.x = culler.x;// -aabb_size.x/2; // playerWorldPos.x - aabb_size.x / 2;
+		aabb_lower.y = culler.y;// -aabb_size.y/2; // playerWorldPos.y - aabb_size.y / 2;
+		aabb_upper.x = culler.x + culler.width;// aabb_size.x/2; // playerWorldPos.x + aabb_size.x / 2;
+		aabb_upper.y = culler.y + culler.height;// aabb_size.y/2; // playerWorldPos.y + aabb_size.y / 2;
 		eList.clear();
 		world.getWorld().QueryAABB(new QueryCallback() {
 			@Override

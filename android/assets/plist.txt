@@ -605,6 +605,7 @@
 720p/bricks-to-walk-on-8.png
 720p/bricks-to-walk-on-9.png
 720p/bricks-to-walk-on.png
+720p/d10.png
 720p/d1.png
 720p/d2.png
 720p/d3.png
